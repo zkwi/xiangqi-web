@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { ClipboardCopy, FileInput, Search, Upload } from 'lucide-react';
+import { ClipboardCopy, FileInput, Search, Shuffle, Upload } from 'lucide-react';
 import { ENDGAME_PRESETS } from '../game/presets.js';
 
 const MAX_VISIBLE_PRESETS = 120;
@@ -52,13 +52,18 @@ export function AnalysisPanel({
   }, [normalizedQuery, presetCategory, presetRows]);
   const visiblePresets = filteredPresets.slice(0, MAX_VISIBLE_PRESETS);
   const hiddenPresetCount = Math.max(0, filteredPresets.length - visiblePresets.length);
+  const loadRandomPreset = () => {
+    const pool = filteredPresets.length ? filteredPresets : presetRows;
+    const row = pool[Math.floor(Math.random() * pool.length)];
+    if (row) onLoadPreset(row.preset);
+  };
 
   return (
     <aside className="panel analysis-panel">
       <div className="panel-heading">
         <div>
-          <p className="panel-kicker">残局解析</p>
-          <h2>着法记录</h2>
+          <p className="panel-kicker">记录和残局</p>
+          <h2>本局记录</h2>
         </div>
         <button className="icon-button" type="button" title="复制当前 FEN" onClick={() => copyText(fen)}>
           <ClipboardCopy size={18} />
@@ -84,7 +89,7 @@ export function AnalysisPanel({
             </div>
           ))
         ) : (
-          <div className="empty-state">等待落子</div>
+          <div className="empty-state">还没有着法</div>
         )}
       </div>
 
@@ -124,28 +129,16 @@ export function AnalysisPanel({
         </div>
       ) : null}
 
-      <div className="fen-loader">
-        <div className="section-title">
-          <FileInput size={16} />
-          载入残局 FEN
-        </div>
-        <textarea
-          value={fenInput}
-          spellCheck="false"
-          onChange={(event) => setFenInput(event.target.value)}
-          rows={4}
-        />
-        {fenError ? <p className="form-error">{fenError}</p> : null}
-        <button className="primary-action" type="button" onClick={onLoadFen}>
-          <Upload size={17} />
-          载入局面
-        </button>
-      </div>
-
       <div className="preset-browser">
-        <div className="section-title">
-          <Search size={16} />
-          内置残局库
+        <div className="section-title section-title-row">
+          <span>
+            <Search size={16} />
+            残局库
+          </span>
+          <button className="mini-action" type="button" onClick={loadRandomPreset}>
+            <Shuffle size={15} />
+            随机一局
+          </button>
         </div>
         <label className="preset-search">
           <Search size={15} />
@@ -194,10 +187,28 @@ export function AnalysisPanel({
         </div>
       </div>
 
-      <div className="fen-current">
-        <span>当前 FEN</span>
+      <details className="fen-loader advanced-panel">
+        <summary>
+          <FileInput size={16} />
+          导入局面（FEN）
+        </summary>
+        <textarea
+          value={fenInput}
+          spellCheck="false"
+          onChange={(event) => setFenInput(event.target.value)}
+          rows={4}
+        />
+        {fenError ? <p className="form-error">{fenError}</p> : null}
+        <button className="primary-action" type="button" onClick={onLoadFen}>
+          <Upload size={17} />
+          载入局面
+        </button>
+      </details>
+
+      <details className="fen-current advanced-panel">
+        <summary>当前 FEN</summary>
         <code>{fen}</code>
-      </div>
+      </details>
     </aside>
   );
 }

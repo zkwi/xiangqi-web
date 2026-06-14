@@ -70,13 +70,20 @@ export default function App() {
     ...status,
     turnName: SIDE_NAMES[game.turn],
   };
+  const isHumanMode = mode === 'human';
+  const isHumanTurn = isHumanMode && game.turn === humanSide;
   const mobileStatusText = gameStatus.over
     ? `${gameStatus.winner === 'red' ? '红方' : '黑方'}胜`
     : gameStatus.check
       ? '被将军'
-      : '行棋';
+      : isHumanMode
+        ? isHumanTurn
+          ? '玩家回合'
+          : '电脑回合'
+        : autoPlaying
+          ? '运行中'
+          : '已暂停';
   const mobileTurnSide = gameStatus.over ? 'finished' : game.turn;
-  const isHumanMode = mode === 'human';
 
   const lastMove = moveLog.at(-1)?.move ?? null;
 
@@ -336,7 +343,7 @@ export default function App() {
       <header className="topbar">
         <div>
           <h1>中国象棋</h1>
-          <p>人机对战、自动对战与残局推演</p>
+          <p>下棋、AI 对战与残局研究</p>
         </div>
         <div className="topbar-meta">
           <span>{ENDGAME_PRESETS.length} 个内置局面</span>
@@ -401,7 +408,7 @@ export default function App() {
               onClick={isHumanMode ? requestAiMove : () => setAutoPlaying((value) => !value)}
             >
               {isHumanMode ? <StepForward size={17} /> : autoPlaying ? <Pause size={17} /> : <Play size={17} />}
-              {isHumanMode ? 'AI走一步' : autoPlaying ? '暂停' : mode === 'analysis' ? '推演' : '对战'}
+              {isHumanMode ? '电脑走一步' : autoPlaying ? '暂停' : mode === 'analysis' ? '研究' : '对战'}
             </button>
             {!isHumanMode ? (
               <button type="button" disabled={Boolean(aiThinking || gameStatus.over)} onClick={requestAiMove}>

@@ -4,6 +4,7 @@ import {
   Pause,
   Play,
   RotateCcw,
+  Settings,
   StepForward,
   Undo2,
   User,
@@ -36,11 +37,23 @@ export function ControlPanel({
   onReset,
   onStepAi,
 }) {
+  const humanTurnName = humanSide === 'red' ? '红方' : '黑方';
+  const isHumanTurn = mode === 'human' && gameStatus.turnName === humanTurnName;
+  const baseStatusText = mode === 'human' ? (isHumanTurn ? '玩家回合' : '电脑回合') : autoPlaying ? '运行中' : '已暂停';
   const statusText = gameStatus.over
     ? `${gameStatus.winner === 'red' ? '红方' : '黑方'}胜：${gameStatus.reason}`
-    : gameStatus.check
-      ? '被将军'
-      : '行棋';
+    : `${baseStatusText}${gameStatus.check ? ' · 被将军' : ''}`;
+  const statusLabel = gameStatus.over
+    ? '已结束'
+    : aiThinking
+      ? `${aiThinking}思考中`
+      : mode === 'human'
+        ? isHumanTurn
+          ? '轮到你'
+          : '等待电脑'
+        : autoPlaying
+          ? '自动行棋'
+          : '就绪';
   const turnSide = gameStatus.over ? 'finished' : gameStatus.turnName === '红方' ? 'red' : 'black';
   const statusClass = ['status-card', gameStatus.check ? 'warning' : '', aiThinking ? 'thinking' : '']
     .filter(Boolean)
@@ -53,13 +66,15 @@ export function ControlPanel({
       : autoPlaying
         ? '暂停自动对战'
         : '开始自动对战';
+  const humanAiLevel = humanSide === 'red' ? blackLevel : redLevel;
+  const setHumanAiLevel = humanSide === 'red' ? setBlackLevel : setRedLevel;
 
   return (
     <aside className="panel control-panel">
       <div className="panel-heading">
         <div>
-          <p className="panel-kicker">对局控制</p>
-          <h2>中国象棋</h2>
+          <p className="panel-kicker">当前对局</p>
+          <h2>对局控制</h2>
         </div>
         <button
           className="icon-button"
@@ -76,29 +91,29 @@ export function ControlPanel({
           <span className={`turn-pill ${turnSide}`}>{gameStatus.over ? '终局' : gameStatus.turnName}</span>
           <span>{statusText}</span>
         </div>
-        <strong>{aiThinking ? `${aiThinking}思考中` : '就绪'}</strong>
+        <strong>{statusLabel}</strong>
       </div>
 
       <div className="field-group">
-        <label>模式</label>
+        <label>玩法</label>
         <div className="segmented mode-tabs">
           <button className={mode === 'human' ? 'active' : ''} type="button" onClick={() => setMode('human')}>
             <span className="button-icon">
               <User size={16} />
             </span>
-            <span>人机</span>
+            <span>我要下棋</span>
           </button>
           <button className={mode === 'auto' ? 'active' : ''} type="button" onClick={() => setMode('auto')}>
             <span className="button-icon">
               <Bot size={16} />
             </span>
-            <span>自动对战</span>
+            <span>AI对战</span>
           </button>
           <button className={mode === 'analysis' ? 'active' : ''} type="button" onClick={() => setMode('analysis')}>
             <span className="button-icon">
               <Brain size={16} />
             </span>
-            <span>残局推演</span>
+            <span>残局研究</span>
           </button>
         </div>
       </div>
@@ -125,27 +140,14 @@ export function ControlPanel({
         </div>
       ) : null}
 
-      <div className="level-grid">
-        <LevelSelect label="红方难度" value={redLevel} onChange={setRedLevel} />
-        <LevelSelect label="黑方难度" value={blackLevel} onChange={setBlackLevel} />
-      </div>
-
-      <div className="field-group">
-        <label>棋盘主题</label>
-        <div className="theme-picker">
-          {BOARD_THEMES.map((theme) => (
-            <button
-              className={boardTheme === theme.id ? 'active' : ''}
-              key={theme.id}
-              type="button"
-              onClick={() => setBoardTheme(theme.id)}
-            >
-              <span className={`theme-swatch ${theme.id}`} />
-              {theme.label}
-            </button>
-          ))}
+      {mode === 'human' ? (
+        <LevelSelect label="电脑强度" value={humanAiLevel} onChange={setHumanAiLevel} />
+      ) : (
+        <div className="level-grid">
+          <LevelSelect label="红方 AI" value={redLevel} onChange={setRedLevel} />
+          <LevelSelect label="黑方 AI" value={blackLevel} onChange={setBlackLevel} />
         </div>
-      </div>
+      )}
 
       <div className="action-grid">
         {mode === 'human' ? (
@@ -156,7 +158,7 @@ export function ControlPanel({
             onClick={onStepAi}
           >
             <StepForward size={17} />
-            AI走一步
+            电脑走一步
           </button>
         ) : (
           <button className="primary-action" type="button" onClick={() => setAutoPlaying(!autoPlaying)}>
@@ -180,13 +182,39 @@ export function ControlPanel({
         </button>
       </div>
 
-      <div className="level-note">
-        <strong>引擎策略</strong>
-        <span>宗师：WASM 强引擎限时搜索。</span>
-        <span>其他档：本地搜索，响应更快。</span>
-        <span>自动对战/残局推演：红黑双方由 AI 连续行棋。</span>
-        <span>刷新页面会恢复上次棋局。</span>
-      </div>
+      <details className="settings-panel">
+        <summary>
+          <Settings size={16} />
+          外观和引擎
+        </summary>
+
+        <div className="settings-content">
+          <div className="field-group">
+            <label>棋盘主题</label>
+            <div className="theme-picker">
+              {BOARD_THEMES.map((theme) => (
+                <button
+                  className={boardTheme === theme.id ? 'active' : ''}
+                  key={theme.id}
+                  type="button"
+                  onClick={() => setBoardTheme(theme.id)}
+                >
+                  <span className={`theme-swatch ${theme.id}`} />
+                  {theme.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="level-note">
+            <strong>引擎策略</strong>
+            <span>宗师：WASM 强引擎限时搜索。</span>
+            <span>其他档：本地搜索，响应更快。</span>
+            <span>AI对战/残局研究：红黑双方由 AI 连续行棋。</span>
+            <span>刷新页面会恢复上次棋局。</span>
+          </div>
+        </div>
+      </details>
     </aside>
   );
 }

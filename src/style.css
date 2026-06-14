@@ -206,6 +206,7 @@ textarea:focus-visible {
 
 .icon-button:hover,
 .action-grid button:hover,
+.mini-action:hover,
 .preset-list button:hover,
 .segmented button:hover {
   border-color: rgba(28, 114, 107, 0.32);
@@ -490,6 +491,64 @@ textarea:focus-visible {
 .level-note span {
   color: var(--muted);
   font-size: 12px;
+}
+
+.settings-panel,
+.advanced-panel {
+  border: 1px solid rgba(126, 90, 47, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 253, 247, 0.56);
+}
+
+.settings-panel summary,
+.advanced-panel summary {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 11px;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 820;
+  cursor: pointer;
+  list-style: none;
+}
+
+.settings-panel summary::-webkit-details-marker,
+.advanced-panel summary::-webkit-details-marker {
+  display: none;
+}
+
+.settings-panel summary::after,
+.advanced-panel summary::after {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 16px;
+  content: "+";
+}
+
+.settings-panel[open] summary,
+.advanced-panel[open] summary {
+  border-bottom: 1px solid rgba(126, 90, 47, 0.14);
+}
+
+.settings-panel[open] summary::after,
+.advanced-panel[open] summary::after {
+  content: "-";
+}
+
+.settings-content,
+.advanced-panel > :not(summary) {
+  margin: 10px;
+}
+
+.settings-content {
+  display: grid;
+  gap: 12px;
+}
+
+.settings-panel .level-note {
+  margin-top: 0;
 }
 
 .mobile-action-bar {
@@ -1080,6 +1139,39 @@ textarea:focus-visible {
   font-weight: 840;
 }
 
+.section-title-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.section-title-row > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mini-action {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: 1px solid rgba(28, 114, 107, 0.18);
+  border-radius: 8px;
+  padding: 4px 9px;
+  color: var(--jade-strong);
+  background: rgba(231, 239, 233, 0.7);
+  font-size: 12px;
+  font-weight: 820;
+  cursor: pointer;
+  transition:
+    transform 0.16s ease,
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    background 0.16s ease;
+}
+
 .fen-loader textarea {
   width: 100%;
   min-height: 90px;
@@ -1211,9 +1303,7 @@ textarea:focus-visible {
 }
 
 .fen-current {
-  margin-top: auto;
-  border-top: 1px solid rgba(126, 90, 47, 0.16);
-  padding-top: 12px;
+  margin-top: 0;
 }
 
 .fen-current code {
