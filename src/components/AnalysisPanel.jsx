@@ -96,7 +96,7 @@ export function AnalysisPanel({
       <div className="search-info">
         <div>
           <span>引擎</span>
-          <strong>{formatEngine(searchInfo)}</strong>
+          <strong title={searchInfo?.engine ?? ''}>{formatEngine(searchInfo)}</strong>
         </div>
         <div>
           <span>搜索深度</span>
@@ -114,6 +114,12 @@ export function AnalysisPanel({
 
       {searchInfo ? (
         <div className="engine-detail">
+          {searchInfo.fallbackReason ? (
+            <div className="engine-warning">
+              <span>回退原因</span>
+              <strong>{searchInfo.fallbackReason}</strong>
+            </div>
+          ) : null}
           <div>
             <span>推荐着法</span>
             <strong>{searchInfo.bestMoveLabel || '-'}</strong>
@@ -123,8 +129,8 @@ export function AnalysisPanel({
             <strong>{formatScore(searchInfo.score)}</strong>
           </div>
           <div>
-            <span>置换命中</span>
-            <strong>{searchInfo.tableHits ? searchInfo.tableHits.toLocaleString() : '-'}</strong>
+            <span>{searchInfo.engineTimeLimit ? '引擎预算' : '置换命中'}</span>
+            <strong>{formatSearchBudget(searchInfo)}</strong>
           </div>
         </div>
       ) : null}
@@ -221,7 +227,16 @@ function formatScore(score) {
 
 function formatEngine(searchInfo) {
   if (!searchInfo) return '-';
-  return searchInfo.engine?.includes('WASM') ? 'WASM' : '本地';
+  if (searchInfo.fallbackReason) return '本地回退';
+  if (searchInfo.engine?.includes('WASM')) {
+    return searchInfo.engineSkill ? `WASM S${searchInfo.engineSkill}` : 'WASM';
+  }
+  return '本地';
+}
+
+function formatSearchBudget(searchInfo) {
+  if (searchInfo.engineTimeLimit) return `${searchInfo.engineTimeLimit}ms`;
+  return searchInfo.tableHits ? searchInfo.tableHits.toLocaleString() : '-';
 }
 
 function copyText(value) {

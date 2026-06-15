@@ -1,7 +1,7 @@
 import { findBestMove } from './ai.js';
 import { engineMoveToLegalMove } from './fairyProtocol.js';
 import { AI_LEVEL_MAP, DEFAULT_LEVEL } from './levels.js';
-import { moveToLabel, parseFen } from './xiangqi.js';
+import { countPieces, moveToLabel, parseFen } from './xiangqi.js';
 
 let fairyWorker = null;
 let fairyBusy = false;
@@ -11,12 +11,23 @@ self.onmessage = async (event) => {
   const { id, fen, level } = event.data;
 
   try {
-    if (level === 'grandmaster') {
+    const levelConfig = AI_LEVEL_MAP[level] ?? AI_LEVEL_MAP[DEFAULT_LEVEL];
+    if (levelConfig.useEngine) {
       const result = await findFairyMove(fen, level);
       if (result?.move) {
         self.postMessage({ id, ok: true, ...withMoveLabel(result) });
         return;
       }
+
+      const fallback = findBestMove(fen, level);
+      self.postMessage({
+        id,
+        ok: true,
+        ...withMoveLabel(fallback),
+        engine: '本地 Negamax',
+        fallbackReason: result?.fallbackReason ?? 'WASM 引擎暂不可用',
+      });
+      return;
     }
 
     const result = findBestMove(fen, level);
@@ -31,11 +42,13 @@ self.onmessage = async (event) => {
 };
 
 async function findFairyMove(fen, levelId) {
-  if (fairyBusy) return null;
+  if (fairyBusy) return { fallbackReason: 'WASM 引擎正在计算上一手' };
 
   const level = AI_LEVEL_MAP[levelId] ?? AI_LEVEL_MAP[DEFAULT_LEVEL];
   const state = parseFen(fen);
+  const pieceCount = countPieces(state);
   const worker = getFairyEngine();
+  const movetime = chooseEngineTime(level, pieceCount);
 
   fairyBusy = true;
   const start = Date.now();
@@ -45,13 +58,20 @@ async function findFairyMove(fen, levelId) {
     const engineResult = await requestFairySearch(worker, {
       id: requestId,
       fen,
-      movetime: level.engineTimeLimit ?? 3500,
+      movetime,
+      skillLevel: level.engineSkill ?? 20,
     });
 
-    if (!engineResult?.ok || !engineResult.bestmove || engineResult.bestmove === '0000') return null;
+    if (!engineResult?.ok) {
+      return { fallbackReason: engineResult?.error ?? 'WASM 引擎没有完成搜索' };
+    }
+
+    if (!engineResult.bestmove || engineResult.bestmove === '0000') {
+      return { fallbackReason: 'WASM 引擎没有返回可用着法' };
+    }
 
     const move = engineMoveToLegalMove(state, engineResult.bestmove);
-    if (!move) return null;
+    if (!move) return { fallbackReason: `WASM 返回非法着法 ${engineResult.bestmove}` };
 
     return {
       move,
@@ -60,10 +80,23 @@ async function findFairyMove(fen, levelId) {
       nodes: engineResult.nodes ?? 0,
       ms: engineResult.ms ?? Date.now() - start,
       engine: 'Fairy-Stockfish WASM',
+      engineSkill: level.engineSkill ?? 20,
+      engineTimeLimit: movetime,
+    };
+  } catch (error) {
+    return {
+      fallbackReason: error instanceof Error ? error.message : String(error),
     };
   } finally {
     fairyBusy = false;
   }
+}
+
+function chooseEngineTime(level, pieceCount) {
+  if (pieceCount <= 12) {
+    return level.engineEndgameTimeLimit ?? level.engineTimeLimit ?? 3500;
+  }
+  return level.engineTimeLimit ?? 3500;
 }
 
 function withMoveLabel(result) {

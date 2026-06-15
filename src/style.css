@@ -1336,6 +1336,12 @@ textarea:focus-visible {
   white-space: nowrap;
 }
 
+.engine-detail .engine-warning strong {
+  color: #9b3b2c;
+  line-height: 1.35;
+  white-space: normal;
+}
+
 .section-title {
   display: inline-flex;
   align-items: center;

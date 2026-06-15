@@ -9,6 +9,7 @@ import {
 } from '../src/game/xiangqi.js';
 import { ENDGAME_PRESETS } from '../src/game/presets.js';
 import { engineMoveToLegalMove } from '../src/game/fairyProtocol.js';
+import { AI_LEVEL_MAP } from '../src/game/levels.js';
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -41,6 +42,17 @@ const startState = parseFen(ENDGAME_PRESETS[0].fen);
 const fairyOpeningMove = engineMoveToLegalMove(startState, 'b1c3');
 assert(fairyOpeningMove, 'Fairy-Stockfish 坐标 b1c3 应转换为本地合法走法');
 assert(moveToLabel(fairyOpeningMove) === '红方 马 b0-c2', `坐标转换异常：${moveToLabel(fairyOpeningMove)}`);
+
+assert(AI_LEVEL_MAP.master.useEngine, '大师应与宗师统一使用 WASM 引擎通道');
+assert(AI_LEVEL_MAP.grandmaster.useEngine, '宗师应使用 WASM 引擎通道');
+assert(
+  AI_LEVEL_MAP.grandmaster.engineTimeLimit > AI_LEVEL_MAP.master.engineTimeLimit,
+  '宗师常规搜索预算应高于大师',
+);
+assert(
+  AI_LEVEL_MAP.grandmaster.engineEndgameTimeLimit > AI_LEVEL_MAP.grandmaster.engineTimeLimit,
+  '宗师残局搜索应自动加时',
+);
 
 const endgame = findBestMove(ENDGAME_PRESETS[3].fen, 'grandmaster');
 assert(endgame.depth >= 6, `宗师残局至少应完成 6 层，实际 ${endgame.depth}`);

@@ -5,11 +5,11 @@ let nextSearchId = 1;
 const lines = [];
 
 self.onmessage = async (event) => {
-  const { id, type, fen, movetime = 3500 } = event.data ?? {};
+  const { id, type, fen, movetime = 3500, skillLevel = 20 } = event.data ?? {};
   if (type !== 'search') return;
 
   try {
-    const result = await search(fen, movetime);
+    const result = await search(fen, movetime, skillLevel);
     self.postMessage({ id, ok: true, ...result });
   } catch (error) {
     self.postMessage({
@@ -20,7 +20,7 @@ self.onmessage = async (event) => {
   }
 };
 
-async function search(fen, movetime) {
+async function search(fen, movetime, skillLevel) {
   if (!fen) throw new Error('缺少 FEN');
 
   const currentEngine = await getEngine();
@@ -28,6 +28,7 @@ async function search(fen, movetime) {
   const searchId = nextSearchId++;
   activeSearch = searchId;
 
+  await configureStrength(currentEngine, skillLevel);
   send(currentEngine, 'stop');
   send(currentEngine, 'ucinewgame');
   send(currentEngine, `position fen ${fen}`);
@@ -79,12 +80,20 @@ async function initEngine() {
   send(engine, 'uci');
   await waitForLine((line) => line === 'uciok', 5000, 0);
   send(engine, 'setoption name UCI_Variant value xiangqi');
-  send(engine, 'setoption name Hash value 64');
+  send(engine, 'setoption name Hash value 128');
   send(engine, 'setoption name Threads value 2');
   send(engine, 'setoption name Skill Level value 20');
   send(engine, 'isready');
   await waitForLine((line) => line === 'readyok', 5000, 0);
   return engine;
+}
+
+async function configureStrength(target, skillLevel) {
+  const safeSkill = Math.max(0, Math.min(20, Number(skillLevel) || 20));
+  const startIndex = lines.length;
+  send(target, `setoption name Skill Level value ${safeSkill}`);
+  send(target, 'isready');
+  await waitForLine((line) => line === 'readyok', 3000, startIndex);
 }
 
 function send(target, command) {
