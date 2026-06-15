@@ -1,0 +1,16 @@
+SPDX-License-Identifier: GPL-3.0-or-later
+
+Copyright (c) 2026 zkwi
+
+本项目以 GNU General Public License v3.0 或后续版本授权发布。
+
+你可以自由使用、复制、修改和分发本项目，但分发修改版或衍生作品时，需要遵守 GPL-3.0-or-later 的同等开源要求。
+
+完整许可证文本请见：
+
+https://www.gnu.org/licenses/gpl-3.0.html
+
+项目中的第三方资源和数据可能适用各自许可证。具体来源和授权说明请查看：
+
+- ASSET_CREDITS.md
+- THIRD_PARTY_NOTICES.md
