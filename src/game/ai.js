@@ -6,6 +6,7 @@ import {
   isInCheck,
   moveKey,
   parseFen,
+  positionKey,
   toFen,
 } from './xiangqi.js';
 import { AI_LEVEL_MAP, DEFAULT_LEVEL } from './levels.js';
@@ -23,10 +24,11 @@ const PIECE_VALUE = {
   pawn: 120,
 };
 
-export function findBestMove(fen, levelId = DEFAULT_LEVEL) {
+export function findBestMove(fen, levelId = DEFAULT_LEVEL, options = {}) {
   const state = parseFen(fen);
   const level = AI_LEVEL_MAP[levelId] ?? AI_LEVEL_MAP[DEFAULT_LEVEL];
   const legalMoves = generateLegalMoves(state, state.turn);
+  const candidateMoves = filterRepeatingMoves(state, legalMoves, options.avoidPositionKeys);
   const start = Date.now();
   const pieceCount = countPieces(state);
   const maxDepth = chooseSearchDepth(level, pieceCount);
@@ -50,7 +52,7 @@ export function findBestMove(fen, levelId = DEFAULT_LEVEL) {
     return { move: mateNow, score: MATE, depth: 1, nodes: 1, ms: Date.now() - start };
   }
 
-  let bestMove = orderMoves(state, legalMoves, stats, 0)[0];
+  let bestMove = orderMoves(state, candidateMoves, stats, 0)[0];
   let bestScore = -INF;
   let completedDepth = 0;
   let rootScores = [];
@@ -61,7 +63,7 @@ export function findBestMove(fen, levelId = DEFAULT_LEVEL) {
     const scored = [];
     let alpha = -INF;
 
-    for (const move of orderMoves(state, prioritizeBest(legalMoves, bestMove), stats, 0, bestMove)) {
+    for (const move of orderMoves(state, prioritizeBest(candidateMoves, bestMove), stats, 0, bestMove)) {
       if (Date.now() >= deadline) {
         stats.stopped = true;
         break;
@@ -100,7 +102,16 @@ export function findBestMove(fen, levelId = DEFAULT_LEVEL) {
     nodes: stats.nodes,
     tableHits: stats.tableHits,
     ms: Date.now() - start,
+    avoidedRepetition: candidateMoves.length !== legalMoves.length || undefined,
   };
+}
+
+function filterRepeatingMoves(state, legalMoves, avoidPositionKeys = []) {
+  if (!avoidPositionKeys.length) return legalMoves;
+
+  const avoid = new Set(avoidPositionKeys);
+  const filtered = legalMoves.filter((move) => !avoid.has(positionKey(applyMove(state, move))));
+  return filtered.length ? filtered : legalMoves;
 }
 
 function negamax(state, depth, alpha, beta, ply, stats, table) {

@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { ClipboardCopy, FileInput, Search, Shuffle, Upload } from 'lucide-react';
 import { ENDGAME_PRESETS } from '../game/presets.js';
+import { getPresetDisplayLabel, getPresetSearchText } from '../game/presetLabels.js';
 
 const MAX_VISIBLE_PRESETS = 120;
 const ALL_CATEGORIES = '全部';
@@ -12,14 +13,23 @@ export function AnalysisPanel({
   fenError,
   moveLog,
   searchInfo,
+  repetitionNotice,
   onLoadFen,
   onLoadPreset,
+  onMoveRecordSelect,
 }) {
   const [presetQuery, setPresetQuery] = useState('');
   const [presetCategory, setPresetCategory] = useState(ALL_CATEGORIES);
+  const [copyStatus, setCopyStatus] = useState('');
+  const copyTimerRef = useRef(0);
   const normalizedQuery = presetQuery.trim().toLowerCase();
   const presetRows = useMemo(
-    () => ENDGAME_PRESETS.map((preset, index) => ({ preset, displayIndex: index + 1 })),
+    () =>
+      ENDGAME_PRESETS.map((preset, index) => ({
+        preset,
+        displayLabel: getPresetDisplayLabel(preset, index),
+        searchText: getPresetSearchText(preset, index),
+      })),
     [],
   );
   const presetCategories = useMemo(
@@ -30,24 +40,11 @@ export function AnalysisPanel({
     [],
   );
   const filteredPresets = useMemo(() => {
-    return presetRows.filter(({ preset, displayIndex }) => {
+    return presetRows.filter(({ preset, searchText }) => {
       if (presetCategory !== ALL_CATEGORIES && preset.category !== presetCategory) return false;
       if (!normalizedQuery) return true;
 
-      const searchable = [
-        preset.id,
-        preset.name,
-        preset.category,
-        preset.note,
-        preset.source,
-        String(displayIndex),
-        String(displayIndex).padStart(3, '0'),
-      ]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
-
-      return searchable.includes(normalizedQuery);
+      return searchText.includes(normalizedQuery);
     });
   }, [normalizedQuery, presetCategory, presetRows]);
   const visiblePresets = filteredPresets.slice(0, MAX_VISIBLE_PRESETS);
@@ -57,6 +54,16 @@ export function AnalysisPanel({
     const row = pool[Math.floor(Math.random() * pool.length)];
     if (row) onLoadPreset(row.preset);
   };
+  const copyCurrentFen = () => {
+    copyText(fen)
+      .then(() => showCopyStatus('已复制 FEN'))
+      .catch(() => showCopyStatus('复制失败'));
+  };
+  const showCopyStatus = (message) => {
+    setCopyStatus(message);
+    window.clearTimeout(copyTimerRef.current);
+    copyTimerRef.current = window.setTimeout(() => setCopyStatus(''), 1800);
+  };
 
   return (
     <aside className="panel analysis-panel">
@@ -65,15 +72,21 @@ export function AnalysisPanel({
           <p className="panel-kicker">记录和残局</p>
           <h2>本局记录</h2>
         </div>
-        <button className="icon-button" type="button" title="复制当前 FEN" onClick={() => copyText(fen)}>
-          <ClipboardCopy size={18} />
-        </button>
+        <div className="panel-heading-actions">
+          <span className="panel-mini-stat">{ENDGAME_PRESETS.length} 局</span>
+          <button className="icon-button" type="button" title="复制当前 FEN" onClick={copyCurrentFen}>
+            <ClipboardCopy size={18} />
+          </button>
+        </div>
+      </div>
+      <div className={copyStatus ? 'copy-status visible' : 'copy-status'} role="status" aria-live="polite">
+        {copyStatus}
       </div>
 
       <div className="move-list" aria-label="着法记录">
         {moveLog.length ? (
           moveLog.map((item, index) => (
-            <div
+            <button
               className={[
                 'move-row',
                 item.source === 'AI' ? 'ai' : 'player',
@@ -82,11 +95,14 @@ export function AnalysisPanel({
                 .filter(Boolean)
                 .join(' ')}
               key={`${item.label}-${index}`}
+              type="button"
+              aria-label={`跳转到第 ${index + 1} 手：${item.label}`}
+              onClick={() => onMoveRecordSelect(index + 1)}
             >
               <span>{index + 1}</span>
               <strong>{item.label}</strong>
               <em>{item.source}</em>
-            </div>
+            </button>
           ))
         ) : (
           <div className="empty-state">还没有着法</div>
@@ -112,26 +128,36 @@ export function AnalysisPanel({
         </div>
       </div>
 
-      {searchInfo ? (
+      {searchInfo || repetitionNotice ? (
         <div className="engine-detail">
-          {searchInfo.fallbackReason ? (
+          {repetitionNotice ? (
+            <div className="engine-warning">
+              <span>对局提示</span>
+              <strong>{repetitionNotice}</strong>
+            </div>
+          ) : null}
+          {searchInfo?.fallbackReason ? (
             <div className="engine-warning">
               <span>回退原因</span>
               <strong>{searchInfo.fallbackReason}</strong>
             </div>
           ) : null}
-          <div>
-            <span>推荐着法</span>
-            <strong>{searchInfo.bestMoveLabel || '-'}</strong>
-          </div>
-          <div>
-            <span>评分</span>
-            <strong>{formatScore(searchInfo.score)}</strong>
-          </div>
-          <div>
-            <span>{searchInfo.engineTimeLimit ? '引擎预算' : '置换命中'}</span>
-            <strong>{formatSearchBudget(searchInfo)}</strong>
-          </div>
+          {searchInfo ? (
+            <>
+              <div>
+                <span>推荐着法</span>
+                <strong>{searchInfo.bestMoveLabel || '-'}</strong>
+              </div>
+              <div>
+                <span>评分</span>
+                <strong>{formatScore(searchInfo.score)}</strong>
+              </div>
+              <div>
+                <span>{searchInfo.engineTimeLimit ? '引擎预算' : '置换命中'}</span>
+                <strong>{formatSearchBudget(searchInfo)}</strong>
+              </div>
+            </>
+          ) : null}
         </div>
       ) : null}
 
@@ -160,6 +186,7 @@ export function AnalysisPanel({
           {presetCategories.map((category) => (
             <button
               className={presetCategory === category ? 'active' : ''}
+              aria-pressed={presetCategory === category}
               key={category}
               type="button"
               onClick={() => setPresetCategory(category)}
@@ -170,9 +197,9 @@ export function AnalysisPanel({
         </div>
         <div className="preset-list">
           {visiblePresets.length ? (
-            visiblePresets.map(({ preset, displayIndex }) => (
+            visiblePresets.map(({ preset, displayLabel }) => (
               <button key={preset.id ?? preset.name} type="button" onClick={() => onLoadPreset(preset)}>
-                <span className="preset-index">{String(displayIndex).padStart(3, '0')}</span>
+                <span className="preset-index">{displayLabel}</span>
                 <span className="preset-copy">
                   <strong>{preset.name}</strong>
                   <span>
@@ -239,7 +266,7 @@ function formatSearchBudget(searchInfo) {
   return searchInfo.tableHits ? searchInfo.tableHits.toLocaleString() : '-';
 }
 
-function copyText(value) {
-  if (!navigator.clipboard) return;
-  navigator.clipboard.writeText(value).catch(() => {});
+async function copyText(value) {
+  if (!navigator.clipboard) throw new Error('当前浏览器不支持剪贴板');
+  await navigator.clipboard.writeText(value);
 }

@@ -4,7 +4,7 @@ const files = Array.from({ length: 9 }, (_, x) => x);
 const ranks = Array.from({ length: 10 }, (_, y) => y);
 const points = ranks.flatMap((y) => files.map((x) => ({ x, y })));
 
-export function Board({ state, legalMoves, selected, lastMove, theme, disabled, onPoint }) {
+export function Board({ state, legalMoves, selected, lastMove, result, theme, disabled, onPoint }) {
   const legalTargets = new Set(legalMoves.map((move) => posKey(move.to)));
 
   return (
@@ -67,8 +67,30 @@ export function Board({ state, legalMoves, selected, lastMove, theme, disabled, 
             );
           })}
         </div>
+
+        {result ? <EndgameOverlay key={result.key} result={result} /> : null}
       </div>
     </section>
+  );
+}
+
+function EndgameOverlay({ result }) {
+  return (
+    <div
+      className={['endgame-overlay', `winner-${result.winner}`, result.tone].filter(Boolean).join(' ')}
+      role="status"
+      aria-live="assertive"
+    >
+      <span className="endgame-ring" aria-hidden="true" />
+      <div className="endgame-message">
+        <span className="endgame-kicker">{result.eyebrow}</span>
+        <span className="endgame-medal" aria-hidden="true">
+          {result.badge}
+        </span>
+        <strong>{result.title}</strong>
+        <em>{result.subtitle}</em>
+      </div>
+    </div>
   );
 }
 

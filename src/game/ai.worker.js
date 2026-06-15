@@ -1,25 +1,36 @@
 import { findBestMove } from './ai.js';
-import { engineMoveToLegalMove } from './fairyProtocol.js';
+import { engineMoveToLegalMove, localMoveToEngineMove } from './fairyProtocol.js';
 import { AI_LEVEL_MAP, DEFAULT_LEVEL } from './levels.js';
-import { countPieces, moveToLabel, parseFen } from './xiangqi.js';
+import { applyMove, countPieces, generateLegalMoves, moveToLabel, parseFen, positionKey } from './xiangqi.js';
 
 let fairyWorker = null;
 let fairyBusy = false;
 let fairyRequestId = 0;
+let fairyBusyRequestId = 0;
+let cancelVersion = 0;
+let activeFairySearch = null;
 
 self.onmessage = async (event) => {
-  const { id, fen, level } = event.data;
+  if (event.data?.type === 'cancel') {
+    cancelCurrentSearch();
+    return;
+  }
+
+  const { id, fen, level, avoidPositionKeys = [] } = event.data;
+  const requestVersion = cancelVersion;
 
   try {
     const levelConfig = AI_LEVEL_MAP[level] ?? AI_LEVEL_MAP[DEFAULT_LEVEL];
     if (levelConfig.useEngine) {
-      const result = await findFairyMove(fen, level);
+      const result = await findFairyMove(fen, level, avoidPositionKeys);
+      if (requestVersion !== cancelVersion || result?.cancelled) return;
+
       if (result?.move) {
         self.postMessage({ id, ok: true, ...withMoveLabel(result) });
         return;
       }
 
-      const fallback = findBestMove(fen, level);
+      const fallback = findBestMove(fen, level, { avoidPositionKeys });
       self.postMessage({
         id,
         ok: true,
@@ -30,9 +41,11 @@ self.onmessage = async (event) => {
       return;
     }
 
-    const result = findBestMove(fen, level);
+    const result = findBestMove(fen, level, { avoidPositionKeys });
+    if (requestVersion !== cancelVersion) return;
     self.postMessage({ id, ok: true, ...withMoveLabel(result), engine: '本地 Negamax' });
   } catch (error) {
+    if (requestVersion !== cancelVersion) return;
     self.postMessage({
       id,
       ok: false,
@@ -41,7 +54,7 @@ self.onmessage = async (event) => {
   }
 };
 
-async function findFairyMove(fen, levelId) {
+async function findFairyMove(fen, levelId, avoidPositionKeys = []) {
   if (fairyBusy) return { fallbackReason: 'WASM 引擎正在计算上一手' };
 
   const level = AI_LEVEL_MAP[levelId] ?? AI_LEVEL_MAP[DEFAULT_LEVEL];
@@ -49,10 +62,12 @@ async function findFairyMove(fen, levelId) {
   const pieceCount = countPieces(state);
   const worker = getFairyEngine();
   const movetime = chooseEngineTime(level, pieceCount);
+  const searchMoves = buildNonRepeatingSearchMoves(state, avoidPositionKeys);
 
   fairyBusy = true;
   const start = Date.now();
   const requestId = ++fairyRequestId;
+  fairyBusyRequestId = requestId;
 
   try {
     const engineResult = await requestFairySearch(worker, {
@@ -60,6 +75,7 @@ async function findFairyMove(fen, levelId) {
       fen,
       movetime,
       skillLevel: level.engineSkill ?? 20,
+      searchMoves,
     });
 
     if (!engineResult?.ok) {
@@ -72,6 +88,9 @@ async function findFairyMove(fen, levelId) {
 
     const move = engineMoveToLegalMove(state, engineResult.bestmove);
     if (!move) return { fallbackReason: `WASM 返回非法着法 ${engineResult.bestmove}` };
+    if (moveRepeatsPosition(state, move, avoidPositionKeys)) {
+      return { fallbackReason: `WASM 返回重复局面着法 ${engineResult.bestmove}` };
+    }
 
     return {
       move,
@@ -82,14 +101,41 @@ async function findFairyMove(fen, levelId) {
       engine: 'Fairy-Stockfish WASM',
       engineSkill: level.engineSkill ?? 20,
       engineTimeLimit: movetime,
+      avoidedRepetition: Boolean(searchMoves?.length) || undefined,
     };
   } catch (error) {
+    if (error instanceof Error && error.message.includes('已取消')) {
+      return {
+        cancelled: true,
+        fallbackReason: error.message,
+      };
+    }
+
     return {
       fallbackReason: error instanceof Error ? error.message : String(error),
     };
   } finally {
-    fairyBusy = false;
+    if (fairyBusyRequestId === requestId) {
+      fairyBusy = false;
+      fairyBusyRequestId = 0;
+    }
   }
+}
+
+function moveRepeatsPosition(state, move, avoidPositionKeys = []) {
+  if (!avoidPositionKeys.length) return false;
+  return new Set(avoidPositionKeys).has(positionKey(applyMove(state, move)));
+}
+
+function buildNonRepeatingSearchMoves(state, avoidPositionKeys = []) {
+  if (!avoidPositionKeys.length) return null;
+
+  const avoid = new Set(avoidPositionKeys);
+  const legalMoves = generateLegalMoves(state, state.turn);
+  const allowed = legalMoves.filter((move) => !avoid.has(positionKey(applyMove(state, move))));
+
+  if (!allowed.length || allowed.length === legalMoves.length) return null;
+  return allowed.map(localMoveToEngineMove);
 }
 
 function chooseEngineTime(level, pieceCount) {
@@ -104,6 +150,24 @@ function withMoveLabel(result) {
     ...result,
     bestMoveLabel: result.move ? moveToLabel(result.move) : '',
   };
+}
+
+function cancelCurrentSearch() {
+  cancelVersion += 1;
+
+  if (activeFairySearch) {
+    activeFairySearch.cancel();
+    activeFairySearch = null;
+  }
+
+  if (fairyWorker) {
+    fairyWorker.terminate();
+    fairyWorker = null;
+  }
+
+  fairyBusy = false;
+  fairyBusyRequestId = 0;
+  fairyRequestId += 1;
 }
 
 function getFairyEngine() {
@@ -136,6 +200,15 @@ function requestFairySearch(worker, payload) {
       clearTimeout(timer);
       worker.removeEventListener('message', handleMessage);
       worker.removeEventListener('error', handleError);
+      if (activeFairySearch?.id === payload.id) activeFairySearch = null;
+    };
+
+    activeFairySearch = {
+      id: payload.id,
+      cancel: () => {
+        cleanup();
+        reject(new Error('WASM 引擎搜索已取消'));
+      },
     };
 
     worker.addEventListener('message', handleMessage);

@@ -28,10 +28,14 @@ export function ControlPanel({
   aiThinking,
   soundOn,
   setSoundOn,
+  voiceOn,
+  setVoiceOn,
   boardTheme,
   setBoardTheme,
   canUndo,
   gameStatus,
+  legalMoveCount,
+  repetitionNotice,
   resetTargetLabel,
   onUndo,
   onReset,
@@ -40,11 +44,15 @@ export function ControlPanel({
   const humanTurnName = humanSide === 'red' ? '红方' : '黑方';
   const isHumanTurn = mode === 'human' && gameStatus.turnName === humanTurnName;
   const baseStatusText = mode === 'human' ? (isHumanTurn ? '玩家回合' : '电脑回合') : autoPlaying ? '运行中' : '已暂停';
+  const resultText =
+    gameStatus.winner === 'red' ? '红方胜' : gameStatus.winner === 'black' ? '黑方胜' : '终局';
   const statusText = gameStatus.over
-    ? `${gameStatus.winner === 'red' ? '红方' : '黑方'}胜：${gameStatus.reason}`
-    : `${baseStatusText}${gameStatus.check ? ' · 被将军' : ''}`;
+    ? `${resultText}：${gameStatus.reason}`
+    : repetitionNotice || `${baseStatusText}${gameStatus.check ? ' · 被将军' : ''}`;
   const statusLabel = gameStatus.over
     ? '已结束'
+    : repetitionNotice
+      ? '已暂停'
     : aiThinking
       ? `${aiThinking}思考中`
       : mode === 'human'
@@ -55,7 +63,7 @@ export function ControlPanel({
           ? '自动行棋'
           : '就绪';
   const turnSide = gameStatus.over ? 'finished' : gameStatus.turnName === '红方' ? 'red' : 'black';
-  const statusClass = ['status-card', gameStatus.check ? 'warning' : '', aiThinking ? 'thinking' : '']
+  const statusClass = ['status-card', gameStatus.check || repetitionNotice ? 'warning' : '', aiThinking ? 'thinking' : '']
     .filter(Boolean)
     .join(' ');
   const autoActionLabel =
@@ -68,22 +76,27 @@ export function ControlPanel({
         : '开始自动对战';
   const humanAiLevel = humanSide === 'red' ? blackLevel : redLevel;
   const setHumanAiLevel = humanSide === 'red' ? setBlackLevel : setRedLevel;
+  const humanStepLabel = isHumanTurn ? 'AI代走一步' : '电脑应手';
 
   return (
     <aside className="panel control-panel">
       <div className="panel-heading">
         <div>
-          <p className="panel-kicker">当前对局</p>
+          <p className="panel-kicker">中国象棋 · 当前对局</p>
           <h2>对局控制</h2>
         </div>
-        <button
-          className="icon-button"
-          type="button"
-          title={soundOn ? '关闭提示音' : '开启提示音'}
-          onClick={() => setSoundOn(!soundOn)}
-        >
-          {soundOn ? <Volume2 size={18} /> : <VolumeX size={18} />}
-        </button>
+        <div className="panel-heading-actions">
+          <span className="panel-mini-stat">{legalMoveCount} 着法</span>
+          <button
+            className="icon-button"
+            type="button"
+            aria-label={soundOn ? '音效已开启，点击关闭' : '音效已关闭，点击开启'}
+            title={soundOn ? '音效已开启，点击关闭' : '音效已关闭，点击开启'}
+            onClick={() => setSoundOn(!soundOn)}
+          >
+            {soundOn ? <Volume2 size={18} /> : <VolumeX size={18} />}
+          </button>
+        </div>
       </div>
 
       <div className={statusClass} aria-live="polite">
@@ -97,19 +110,34 @@ export function ControlPanel({
       <div className="field-group">
         <label>玩法</label>
         <div className="segmented mode-tabs">
-          <button className={mode === 'human' ? 'active' : ''} type="button" onClick={() => setMode('human')}>
+          <button
+            className={mode === 'human' ? 'active' : ''}
+            aria-pressed={mode === 'human'}
+            type="button"
+            onClick={() => setMode('human')}
+          >
             <span className="button-icon">
               <User size={16} />
             </span>
             <span>我要下棋</span>
           </button>
-          <button className={mode === 'auto' ? 'active' : ''} type="button" onClick={() => setMode('auto')}>
+          <button
+            className={mode === 'auto' ? 'active' : ''}
+            aria-pressed={mode === 'auto'}
+            type="button"
+            onClick={() => setMode('auto')}
+          >
             <span className="button-icon">
               <Bot size={16} />
             </span>
             <span>AI对战</span>
           </button>
-          <button className={mode === 'analysis' ? 'active' : ''} type="button" onClick={() => setMode('analysis')}>
+          <button
+            className={mode === 'analysis' ? 'active' : ''}
+            aria-pressed={mode === 'analysis'}
+            type="button"
+            onClick={() => setMode('analysis')}
+          >
             <span className="button-icon">
               <Brain size={16} />
             </span>
@@ -124,6 +152,7 @@ export function ControlPanel({
           <div className="segmented two">
             <button
               className={humanSide === 'red' ? 'active red' : ''}
+              aria-pressed={humanSide === 'red'}
               type="button"
               onClick={() => setHumanSide('red')}
             >
@@ -131,6 +160,7 @@ export function ControlPanel({
             </button>
             <button
               className={humanSide === 'black' ? 'active black' : ''}
+              aria-pressed={humanSide === 'black'}
               type="button"
               onClick={() => setHumanSide('black')}
             >
@@ -158,10 +188,15 @@ export function ControlPanel({
             onClick={onStepAi}
           >
             <StepForward size={17} />
-            电脑走一步
+            {humanStepLabel}
           </button>
         ) : (
-          <button className="primary-action" type="button" onClick={() => setAutoPlaying(!autoPlaying)}>
+          <button
+            className="primary-action"
+            type="button"
+            disabled={gameStatus.over}
+            onClick={() => setAutoPlaying(!autoPlaying)}
+          >
             {autoPlaying ? <Pause size={18} /> : <Play size={18} />}
             {autoActionLabel}
           </button>
@@ -195,6 +230,7 @@ export function ControlPanel({
               {BOARD_THEMES.map((theme) => (
                 <button
                   className={boardTheme === theme.id ? 'active' : ''}
+                  aria-pressed={boardTheme === theme.id}
                   key={theme.id}
                   type="button"
                   onClick={() => setBoardTheme(theme.id)}
@@ -206,10 +242,32 @@ export function ControlPanel({
             </div>
           </div>
 
+          <div className="field-group">
+            <label>声音</label>
+            <div className="toggle-grid">
+              <button
+                className={soundOn ? 'active' : ''}
+                aria-pressed={soundOn}
+                type="button"
+                onClick={() => setSoundOn(!soundOn)}
+              >
+                提示音
+              </button>
+              <button
+                className={voiceOn ? 'active' : ''}
+                aria-pressed={voiceOn}
+                type="button"
+                onClick={() => setVoiceOn(!voiceOn)}
+              >
+                中文播报
+              </button>
+            </div>
+          </div>
+
           <div className="level-note">
             <strong>引擎策略</strong>
-            <span>宗师：WASM 强引擎限时搜索。</span>
-            <span>其他档：本地搜索，响应更快。</span>
+            <span>大师/宗师：WASM 强引擎限时搜索。</span>
+            <span>入门/棋士：本地搜索，响应更快。</span>
             <span>AI对战/残局研究：红黑双方由 AI 连续行棋。</span>
             <span>刷新页面会恢复上次棋局。</span>
           </div>

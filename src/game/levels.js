@@ -38,14 +38,14 @@ export const AI_LEVELS = [
     label: '宗师',
     depth: 6,
     endgameDepth: 8,
-    timeLimit: 9000,
+    timeLimit: 6500,
     useEngine: true,
     engineSkill: 20,
-    engineTimeLimit: 7000,
-    engineEndgameTimeLimit: 12000,
+    engineTimeLimit: 3000,
+    engineEndgameTimeLimit: 5000,
     randomness: 0,
     blunderMargin: 0,
-    note: '强引擎长时搜索，残局会自动加时。',
+    note: 'S20 强引擎深搜，残局会自动加时。',
   },
 ];
 

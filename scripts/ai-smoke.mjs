@@ -1,10 +1,13 @@
 import { findBestMove } from '../src/game/ai.js';
 import {
   applyMove,
+  findLegalMove,
   generateLegalMoves,
   getGameStatus,
   moveToLabel,
   parseFen,
+  positionKey,
+  START_FEN,
   toFen,
 } from '../src/game/xiangqi.js';
 import { ENDGAME_PRESETS } from '../src/game/presets.js';
@@ -38,7 +41,7 @@ for (const preset of ENDGAME_PRESETS) {
   toFen(state);
 }
 
-const startState = parseFen(ENDGAME_PRESETS[0].fen);
+const startState = parseFen(START_FEN);
 const fairyOpeningMove = engineMoveToLegalMove(startState, 'b1c3');
 assert(fairyOpeningMove, 'Fairy-Stockfish 坐标 b1c3 应转换为本地合法走法');
 assert(moveToLabel(fairyOpeningMove) === '红方 马 b0-c2', `坐标转换异常：${moveToLabel(fairyOpeningMove)}`);
@@ -54,8 +57,29 @@ assert(
   '宗师残局搜索应自动加时',
 );
 
-const endgame = findBestMove(ENDGAME_PRESETS[3].fen, 'grandmaster');
+const depthProbe = ENDGAME_PRESETS.find((preset) => preset.id === 'double-pawns');
+assert(depthProbe, '缺少宗师残局加深探测局面');
+const endgame = findBestMove(depthProbe.fen, 'grandmaster');
 assert(endgame.depth >= 6, `宗师残局至少应完成 6 层，实际 ${endgame.depth}`);
+
+const tuqiangfurou = ENDGAME_PRESETS.find((preset) => preset.id === 'shiqingyaqu-551-020');
+assert(tuqiangfurou, '缺少第020局推强扶弱');
+let repeatState = parseFen(tuqiangfurou.fen);
+repeatState = playCoordMove(repeatState, 'i8', 'i9');
+repeatState = playCoordMove(repeatState, 'e1', 'h1');
+repeatState = playCoordMove(repeatState, 'c7', 'e7');
+repeatState = playCoordMove(repeatState, 'h1', 'h0');
+const repeatedPosition = positionKey(repeatState);
+repeatState = playCoordMove(repeatState, 'f0', 'f1');
+repeatState = playCoordMove(repeatState, 'h0', 'h1');
+repeatState = playCoordMove(repeatState, 'f1', 'f0');
+const nonRepeatingMove = findBestMove(toFen(repeatState), 'beginner', {
+  avoidPositionKeys: [repeatedPosition],
+});
+assert(
+  moveToLabel(nonRepeatingMove.move) !== '黑方 车 h1-h0',
+  'AI 不应主动选择回到历史局面的循环走法',
+);
 
 console.log(
   JSON.stringify(
@@ -69,3 +93,16 @@ console.log(
     2,
   ),
 );
+
+function playCoordMove(state, from, to) {
+  const move = findLegalMove(state, coordToPos(from), coordToPos(to));
+  assert(move, `测试棋谱存在非法着法：${from}-${to}`);
+  return applyMove(state, move);
+}
+
+function coordToPos(coord) {
+  return {
+    x: 'abcdefghi'.indexOf(coord[0]),
+    y: 9 - Number(coord.slice(1)),
+  };
+}

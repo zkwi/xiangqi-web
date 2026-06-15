@@ -1,14 +1,18 @@
-import { START_FEN } from './xiangqi.js';
 import { SHIQINGYAQU_ENDGAMES } from './endgameLibrary.js';
 
+export const SHIQINGYAQU_RED_WIN_LIMIT = 468;
+
+export function getShiqingyaquNumber(preset) {
+  const match = preset.id?.match(/^shiqingyaqu-\d+-(\d{3})$/);
+  return match ? Number(match[1]) : null;
+}
+
+export const RED_WIN_SHIQINGYAQU_ENDGAMES = SHIQINGYAQU_ENDGAMES.filter((preset) => {
+  const number = getShiqingyaquNumber(preset);
+  return number !== null && number <= SHIQINGYAQU_RED_WIN_LIMIT;
+});
+
 export const ENDGAME_PRESETS = [
-  {
-    id: 'standard-start',
-    name: '标准开局',
-    fen: START_FEN,
-    category: '精选',
-    note: '完整初始局面，适合人机对弈。',
-  },
   {
     id: 'rook-basic-win',
     name: '单车例胜',
@@ -30,12 +34,5 @@ export const ENDGAME_PRESETS = [
     category: '精选',
     note: '少子残局，宗师档会自动加深。',
   },
-  {
-    id: 'black-counterplay',
-    name: '黑方反先',
-    fen: '4k4/9/9/9/9/9/4p4/9/4c4/4K4 b - - 0 1',
-    category: '精选',
-    note: '黑炮卒先行，可测试黑方 AI 行棋。',
-  },
-  ...SHIQINGYAQU_ENDGAMES,
+  ...RED_WIN_SHIQINGYAQU_ENDGAMES,
 ];

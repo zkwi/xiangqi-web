@@ -156,9 +156,9 @@ export const SHIQINGYAQU_ENDGAMES = [
   {
     "id": "shiqingyaqu-551-020",
     "name": "推强扶弱",
-    "fen": "2bak2r1/4aP2R/2R1b4/6p1p/1Np6/P1C6/9/9/3pr4/5K2c w - - 0 1",
+    "fen": "2bak2r1/4aP2R/2R1b4/6p1p/1Np6/P1C6/8P/9/3pr4/5K2c w - - 0 1",
     "category": "适情雅趣",
-    "note": "第020局，红先。",
+    "note": "第020局，红先。按流传棋图补右侧红兵。",
     "source": "《适情雅趣》李浭551局新版"
   },
   {
@@ -1810,11 +1810,11 @@ export const SHIQINGYAQU_ENDGAMES = [
     "source": "《适情雅趣》李浭551局新版"
   },
   {
-    "id": "shiqingyaqu-551-228plus",
-    "name": "适情雅趣_李浭551局新版 原_227局_舍生取义_补图复原",
+    "id": "shiqingyaqu-551-227",
+    "name": "舍生取义",
     "fen": "3k1a3/2R1a1N1c/2R6/9/9/9/9/4Cp3/4r4/r2c1K3 w - - 0 1",
     "category": "适情雅趣",
-    "note": "第000局，红先。",
+    "note": "第227局，红先。原始 FEN_INDEX 为 shiqingyaqu-551-228plus。",
     "source": "《适情雅趣》李浭551局新版"
   },
   {
@@ -3251,7 +3251,7 @@ export const SHIQINGYAQU_ENDGAMES = [
   },
   {
     "id": "shiqingyaqu-551-407",
-    "name": "入洞捉虎*",
+    "name": "入洞捉虎",
     "fen": "2b2ab2/3PP4/5k3/4P4/9/1p7/9/C6p1/4p4/3K5 w - - 0 1",
     "category": "适情雅趣",
     "note": "第407局，红先。",

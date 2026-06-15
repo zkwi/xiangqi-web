@@ -80,55 +80,7 @@ textarea:focus-visible {
   width: min(1660px, calc(100vw - 34px));
   min-height: 100vh;
   margin: 0 auto;
-  padding: 14px 0 24px;
-}
-
-.topbar {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 18px;
-  margin-bottom: 12px;
-}
-
-.topbar h1 {
-  margin: 0;
-  color: #f7cc64;
-  font-family: "STKaiti", "KaiTi", "Songti SC", serif;
-  font-size: clamp(32px, 3.2vw, 46px);
-  font-weight: 900;
-  line-height: 1.05;
-  text-shadow:
-    0 2px 0 #6f4a1b,
-    0 4px 10px rgba(0, 0, 0, 0.32);
-}
-
-.topbar p {
-  margin: 4px 0 0;
-  color: rgba(244, 228, 198, 0.82);
-  font-size: 13px;
-  font-weight: 720;
-}
-
-.topbar-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: flex-end;
-}
-
-.topbar-meta span {
-  border: 1px solid rgba(255, 221, 150, 0.24);
-  border-radius: 999px;
-  padding: 8px 12px;
-  color: #f3ddb5;
-  background:
-    linear-gradient(180deg, rgba(84, 58, 34, 0.82), rgba(44, 34, 24, 0.88));
-  box-shadow:
-    inset 0 1px 0 rgba(255, 242, 190, 0.18),
-    0 8px 18px rgba(20, 14, 9, 0.26);
-  font-size: 12px;
-  font-weight: 760;
+  padding: 10px 0 18px;
 }
 
 .workspace {
@@ -151,7 +103,7 @@ textarea:focus-visible {
   display: flex;
   flex-direction: column;
   gap: 13px;
-  max-height: calc(100vh - 122px);
+  max-height: calc(100vh - 28px);
   min-height: 660px;
   overflow: auto;
   padding: 13px;
@@ -211,6 +163,35 @@ textarea:focus-visible {
   gap: 14px;
 }
 
+.panel-heading-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.panel-mini-stat {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  border: 1px solid rgba(255, 221, 150, 0.2);
+  border-radius: 999px;
+  padding: 5px 10px;
+  color: #f3ddb5;
+  background:
+    linear-gradient(180deg, rgba(84, 58, 34, 0.7), rgba(44, 34, 24, 0.76));
+  font-size: 12px;
+  font-weight: 820;
+  white-space: nowrap;
+}
+
+.analysis-panel .panel-mini-stat {
+  border-color: rgba(116, 82, 49, 0.2);
+  color: #6b4724;
+  background:
+    linear-gradient(180deg, rgba(255, 246, 225, 0.82), rgba(226, 198, 158, 0.78));
+}
+
 .panel-heading h2 {
   margin: 0;
   color: #f6e3bd;
@@ -251,6 +232,7 @@ textarea:focus-visible {
 .icon-button:hover,
 .action-grid button:hover,
 .mini-action:hover,
+.move-row:hover,
 .preset-list button:hover,
 .segmented button:hover {
   border-color: rgba(239, 194, 104, 0.52);
@@ -430,6 +412,12 @@ textarea:focus-visible {
   gap: 8px;
 }
 
+.toggle-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
 .theme-picker button {
   min-height: 40px;
   justify-content: start;
@@ -437,8 +425,20 @@ textarea:focus-visible {
   font-size: 13px;
 }
 
+.toggle-grid button {
+  min-height: 40px;
+  border: 1px solid rgba(239, 194, 104, 0.16);
+  border-radius: 8px;
+  color: #f1dec0;
+  background: rgba(48, 48, 36, 0.42);
+  font-size: 13px;
+  font-weight: 820;
+  cursor: pointer;
+}
+
 .theme-picker button.active,
-.preset-categories button.active {
+.preset-categories button.active,
+.toggle-grid button.active {
   border-color: rgba(239, 194, 104, 0.52);
   color: #fff0c9;
   background: linear-gradient(180deg, #8a6741, #5a3d25);
@@ -844,6 +844,211 @@ textarea:focus-visible {
     inset 0 0 20px rgba(85, 49, 22, 0.12);
 }
 
+.endgame-overlay {
+  position: absolute;
+  z-index: 8;
+  inset: 0;
+  display: grid;
+  overflow: hidden;
+  place-items: center;
+  border-radius: 5px;
+  padding: clamp(18px, 5vw, 46px);
+  background:
+    linear-gradient(135deg, rgba(255, 238, 184, 0.26), rgba(71, 43, 20, 0.38)),
+    repeating-linear-gradient(45deg, rgba(255, 250, 226, 0.12) 0 2px, transparent 2px 20px);
+  pointer-events: none;
+  animation: endgameOverlay 3.8s ease forwards;
+}
+
+.endgame-overlay::before {
+  position: absolute;
+  inset: 18% -8%;
+  background: linear-gradient(90deg, transparent, rgba(255, 243, 205, 0.62), transparent);
+  content: "";
+  transform: skewY(-8deg);
+}
+
+.endgame-overlay.winner-red,
+.endgame-overlay.win {
+  background:
+    linear-gradient(135deg, rgba(215, 74, 53, 0.26), rgba(255, 221, 144, 0.42)),
+    repeating-linear-gradient(45deg, rgba(255, 246, 214, 0.14) 0 2px, transparent 2px 20px);
+}
+
+.endgame-overlay.winner-black,
+.endgame-overlay.loss {
+  background:
+    linear-gradient(135deg, rgba(32, 42, 49, 0.5), rgba(239, 194, 104, 0.22)),
+    repeating-linear-gradient(45deg, rgba(255, 250, 226, 0.1) 0 2px, transparent 2px 20px);
+}
+
+.endgame-ring {
+  position: absolute;
+  width: min(54%, 390px);
+  aspect-ratio: 1;
+  border: 2px solid rgba(255, 238, 188, 0.58);
+  border-radius: 50%;
+  box-shadow:
+    inset 0 0 0 8px rgba(255, 226, 159, 0.08),
+    0 0 34px rgba(255, 221, 144, 0.28);
+  animation: endgameRing 3.8s ease-out forwards;
+}
+
+.endgame-message {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: clamp(5px, 1.1vw, 10px);
+  max-width: min(88%, 460px);
+  color: #fff8df;
+  text-align: center;
+  text-shadow:
+    0 2px 0 rgba(65, 35, 16, 0.72),
+    0 12px 28px rgba(37, 22, 12, 0.48);
+  animation: endgameMessage 3.8s cubic-bezier(0.18, 0.86, 0.24, 1) forwards;
+}
+
+.endgame-kicker {
+  border: 1px solid rgba(255, 236, 188, 0.42);
+  border-radius: 999px;
+  padding: 5px 12px;
+  color: rgba(255, 248, 226, 0.92);
+  background: rgba(58, 38, 20, 0.32);
+  font-size: clamp(12px, 1.7vw, 15px);
+  font-weight: 880;
+}
+
+.endgame-medal {
+  display: grid;
+  width: clamp(72px, 13vw, 124px);
+  aspect-ratio: 1;
+  place-items: center;
+  border: 2px solid rgba(255, 244, 205, 0.74);
+  border-radius: 50%;
+  color: #9f3327;
+  background:
+    linear-gradient(145deg, rgba(255, 251, 228, 0.98), rgba(230, 174, 82, 0.96));
+  box-shadow:
+    inset 0 5px 9px rgba(255, 255, 255, 0.58),
+    inset 0 -10px 14px rgba(127, 77, 24, 0.22),
+    0 16px 30px rgba(65, 35, 16, 0.38);
+  font-family: "STKaiti", "KaiTi", "Noto Serif CJK SC", serif;
+  font-size: clamp(42px, 8vw, 78px);
+  font-weight: 900;
+  line-height: 1;
+  animation: endgameMedal 3.8s cubic-bezier(0.18, 0.86, 0.24, 1) forwards;
+}
+
+.endgame-overlay.loss .endgame-medal,
+.endgame-overlay.winner-black.neutral .endgame-medal {
+  color: #f1dec0;
+  background:
+    linear-gradient(145deg, rgba(87, 96, 103, 0.98), rgba(29, 35, 39, 0.96));
+  box-shadow:
+    inset 0 5px 9px rgba(255, 255, 255, 0.14),
+    inset 0 -10px 14px rgba(4, 7, 9, 0.28),
+    0 16px 30px rgba(19, 19, 16, 0.42);
+}
+
+.endgame-message strong {
+  color: #fff6d6;
+  font-family: "STKaiti", "KaiTi", "Noto Serif CJK SC", serif;
+  font-size: clamp(38px, 7vw, 82px);
+  font-weight: 900;
+  line-height: 1;
+}
+
+.endgame-message em {
+  color: rgba(255, 248, 226, 0.95);
+  font-size: clamp(13px, 2vw, 18px);
+  font-style: normal;
+  font-weight: 850;
+  line-height: 1.35;
+}
+
+@keyframes endgameOverlay {
+  0% {
+    visibility: visible;
+    opacity: 0;
+  }
+  10%,
+  82% {
+    opacity: 1;
+  }
+  100% {
+    visibility: hidden;
+    opacity: 0;
+  }
+}
+
+@keyframes endgameMessage {
+  0% {
+    opacity: 0;
+    transform: translateY(22px) scale(0.9);
+  }
+  16%,
+  76% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+}
+
+@keyframes endgameMedal {
+  0% {
+    opacity: 0;
+    transform: scale(0.46) rotate(-9deg);
+  }
+  18% {
+    opacity: 1;
+    transform: scale(1.12) rotate(2deg);
+  }
+  28%,
+  76% {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.92) rotate(0);
+  }
+}
+
+@keyframes endgameRing {
+  0% {
+    opacity: 0;
+    transform: scale(0.36);
+  }
+  18% {
+    opacity: 0.86;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.42);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .endgame-overlay {
+    animation: endgameOverlay 2.8s ease forwards;
+  }
+
+  .endgame-message,
+  .endgame-medal {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .endgame-ring {
+    display: none;
+  }
+}
+
 .theme-jade .board-surface {
   border-color: rgba(28, 114, 107, 0.42);
   background:
@@ -1044,7 +1249,7 @@ textarea:focus-visible {
   position: absolute;
   z-index: 2;
   display: grid;
-  width: min(var(--piece-size), 11.35%);
+  width: min(var(--piece-size), 12.8%);
   height: auto;
   aspect-ratio: 1;
   place-items: center;
@@ -1205,8 +1410,23 @@ textarea:focus-visible {
   padding-right: 2px;
 }
 
+.copy-status {
+  min-height: 18px;
+  margin-top: -8px;
+  color: rgba(107, 71, 36, 0.72);
+  font-size: 12px;
+  font-weight: 780;
+  opacity: 0;
+  transition: opacity 0.16s ease;
+}
+
+.copy-status.visible {
+  opacity: 1;
+}
+
 .move-row {
   display: grid;
+  width: 100%;
   grid-template-columns: 30px 1fr auto;
   gap: 8px;
   align-items: center;
@@ -1216,6 +1436,13 @@ textarea:focus-visible {
   background:
     linear-gradient(180deg, rgba(255, 246, 224, 0.82), rgba(231, 204, 163, 0.72));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.34);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 0.16s ease,
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    background 0.16s ease;
 }
 
 .move-row.latest {
@@ -1467,7 +1694,7 @@ textarea:focus-visible {
 
 .preset-list button {
   display: grid;
-  grid-template-columns: 34px 1fr;
+  grid-template-columns: 42px 1fr;
   justify-items: stretch;
   min-height: auto;
   padding: 10px;
@@ -1476,7 +1703,7 @@ textarea:focus-visible {
 
 .preset-index {
   display: grid;
-  width: 30px;
+  width: 38px;
   height: 26px;
   place-items: center;
   border-radius: 999px;
@@ -1549,16 +1776,7 @@ textarea:focus-visible {
 @media (max-width: 860px) {
   .app-shell {
     width: min(100% - 20px, 780px);
-    padding-top: 14px;
-  }
-
-  .topbar {
-    align-items: start;
-    flex-direction: column;
-  }
-
-  .topbar-meta {
-    justify-content: flex-start;
+    padding-top: 10px;
   }
 
   .workspace {
@@ -1596,8 +1814,8 @@ textarea:focus-visible {
 
 @media (max-width: 720px) {
   :root {
-    --piece-size: clamp(30px, 8.6vw, 40px);
-    --piece-font-size: clamp(22px, 6.8vw, 31px);
+    --piece-size: clamp(34px, 10.2vw, 42px);
+    --piece-font-size: clamp(23px, 7vw, 31px);
   }
 
   body {
@@ -1610,29 +1828,6 @@ textarea:focus-visible {
   .app-shell {
     width: 100%;
     padding: 8px 8px calc(18px + env(safe-area-inset-bottom));
-  }
-
-  .topbar {
-    gap: 8px;
-    margin: 0 2px 8px;
-  }
-
-  .topbar h1 {
-    font-size: 26px;
-  }
-
-  .topbar p {
-    margin-top: 3px;
-    font-size: 12px;
-  }
-
-  .topbar-meta {
-    gap: 6px;
-  }
-
-  .topbar-meta span {
-    padding: 6px 9px;
-    font-size: 11px;
   }
 
   .workspace {
@@ -1740,7 +1935,7 @@ textarea:focus-visible {
   .mobile-action-bar {
     order: -1;
     display: grid;
-    grid-template-columns: minmax(92px, 0.55fr) minmax(0, 1.45fr);
+    grid-template-columns: minmax(96px, 0.58fr) minmax(0, 1.42fr);
     gap: 8px;
     align-items: center;
     border: 1px solid rgba(255, 221, 150, 0.18);
@@ -1846,12 +2041,8 @@ textarea:focus-visible {
 
 @media (max-width: 520px) {
   :root {
-    --piece-size: clamp(30px, 9vw, 42px);
-    --piece-font-size: clamp(22px, 7.1vw, 32px);
-  }
-
-  .topbar h1 {
-    font-size: 26px;
+    --piece-size: clamp(34px, 10.4vw, 42px);
+    --piece-font-size: clamp(23px, 7.2vw, 32px);
   }
 
   .panel-heading h2 {
@@ -1887,21 +2078,13 @@ textarea:focus-visible {
 
 @media (max-width: 420px) {
   :root {
-    --piece-size: clamp(30px, 8.9vw, 38px);
-    --piece-font-size: clamp(22px, 6.9vw, 29px);
+    --piece-size: clamp(34px, 10.2vw, 41px);
+    --piece-font-size: clamp(23px, 7vw, 30px);
   }
 
   .app-shell {
     padding-right: 6px;
     padding-left: 6px;
-  }
-
-  .topbar h1 {
-    font-size: 24px;
-  }
-
-  .topbar-meta span {
-    padding: 5px 8px;
   }
 
   .board-shell {
@@ -1918,7 +2101,7 @@ textarea:focus-visible {
   }
 
   .mobile-action-buttons.human {
-    grid-template-columns: minmax(108px, 1fr) 40px 40px;
+    grid-template-columns: minmax(98px, 1fr) 40px 40px;
   }
 
   .search-info {

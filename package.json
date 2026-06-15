@@ -6,10 +6,15 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "test": "npm run test:ai && npm run test:library",
+    "test": "npm run test:ai && npm run test:library && npm run test:assets && npm run test:interaction && npm run test:red-win && npm run test:audio",
     "check": "npm run build && npm test",
     "test:ai": "node scripts/ai-smoke.mjs",
     "test:library": "node scripts/validate-library.mjs",
+    "test:assets": "node scripts/validate-assets.mjs",
+    "test:interaction": "node scripts/interaction-smoke.mjs",
+    "test:red-win": "node scripts/red-win-sample.mjs",
+    "test:red-win:grandmaster": "node scripts/red-win-sample.mjs --samples=10 --plies=2 --level=grandmaster",
+    "test:audio": "node scripts/audio-smoke.mjs",
     "preview": "vite preview"
   },
   "devDependencies": {

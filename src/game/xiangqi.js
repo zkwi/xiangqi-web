@@ -167,6 +167,10 @@ export function toFen(state) {
   return `${boardPart} ${side} - - ${state.halfmove ?? 0} ${state.fullmove ?? 1}`;
 }
 
+export function positionKey(state) {
+  return toFen(state).split(' ').slice(0, 2).join(' ');
+}
+
 function parseFenSide(value = 'w') {
   const normalized = value.toLowerCase();
   if (normalized === 'b' || normalized === 'black') return 'black';

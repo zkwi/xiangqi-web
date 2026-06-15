@@ -5,8 +5,6 @@
 Used files:
 
 - `click2.wav` as `public/sounds/move.wav`
-- `click3.wav` as `public/sounds/capture.wav`
-- `switch12.wav` as `public/sounds/check.wav`
 - `switch7.wav` as `public/sounds/win.wav`
 - `click4.wav` as `public/sounds/ui.wav`
 
@@ -18,6 +16,19 @@ Author: Kenney Vleugels (Kenney.nl)
 
 The original license states that these assets may be used in personal and
 commercial projects, and that credit is appreciated but not mandatory.
+
+## Checkora chess sounds
+
+Used files:
+
+- `game/static/game/sounds/capture.mp3` as `public/sounds/capture.mp3`
+- `game/static/game/sounds/check.wav` as `public/sounds/check.wav`
+
+Source: https://github.com/Checkora/Checkora/tree/main/game/static/game/sounds
+
+License note: the Checkora repository is MIT licensed. Its sound-effects issue
+describes the capture/check cues and notes that the assets can use free CC0
+sources from freesound.org.
 
 ## kuiba1949/xiangqi-tools
 
