@@ -33,8 +33,9 @@ export function Board({ state, legalMoves, selected, lastMove, theme, disabled, 
             const piece = state.board[point.y][point.x];
             const isSelected = samePos(selected, point);
             const isLegal = legalTargets.has(posKey(point));
-            const isLast =
-              lastMove && (samePos(lastMove.from, point) || samePos(lastMove.to, point));
+            const isCaptureTarget = isLegal && piece && piece.side !== state.turn;
+            const isLastFrom = lastMove && samePos(lastMove.from, point);
+            const isLastTo = lastMove && samePos(lastMove.to, point);
 
             return (
               <button
@@ -44,7 +45,9 @@ export function Board({ state, legalMoves, selected, lastMove, theme, disabled, 
                   piece?.side ?? '',
                   isSelected ? 'selected' : '',
                   isLegal ? 'legal' : '',
-                  isLast ? 'last' : '',
+                  isCaptureTarget ? 'capture-target' : '',
+                  isLastFrom ? 'last-from' : '',
+                  isLastTo ? 'last-to' : '',
                 ]
                   .filter(Boolean)
                   .join(' ')}
@@ -56,7 +59,9 @@ export function Board({ state, legalMoves, selected, lastMove, theme, disabled, 
                 onClick={() => onPoint(point)}
               >
                 {piece ? (
-                  <span className="piece-face">{PIECE_TEXT[piece.side][piece.type]}</span>
+                  <span className="piece-face">
+                    <span className="piece-glyph">{PIECE_TEXT[piece.side][piece.type]}</span>
+                  </span>
                 ) : null}
               </button>
             );
@@ -110,6 +115,11 @@ function BoardLines() {
         {horizontal}
         {vertical}
       </g>
+      <g className="point-marks">
+        {MARK_POINTS.map((point) => (
+          <MarkPoint key={`mark-${point.x}-${point.y}`} point={point} />
+        ))}
+      </g>
       <g className="palace-lines">
         <line x1="3" y1="0" x2="5" y2="2" />
         <line x1="5" y1="0" x2="3" y2="2" />
@@ -118,6 +128,41 @@ function BoardLines() {
       </g>
     </svg>
   );
+}
+
+const MARK_POINTS = [
+  { x: 1, y: 2 },
+  { x: 7, y: 2 },
+  { x: 0, y: 3 },
+  { x: 2, y: 3 },
+  { x: 4, y: 3 },
+  { x: 6, y: 3 },
+  { x: 8, y: 3 },
+  { x: 0, y: 6 },
+  { x: 2, y: 6 },
+  { x: 4, y: 6 },
+  { x: 6, y: 6 },
+  { x: 8, y: 6 },
+  { x: 1, y: 7 },
+  { x: 7, y: 7 },
+];
+
+function MarkPoint({ point }) {
+  const gap = 0.085;
+  const len = 0.13;
+  const paths = [];
+
+  if (point.x > 0) {
+    paths.push(`M ${point.x - gap - len} ${point.y - gap} H ${point.x - gap} V ${point.y - gap - len}`);
+    paths.push(`M ${point.x - gap - len} ${point.y + gap} H ${point.x - gap} V ${point.y + gap + len}`);
+  }
+
+  if (point.x < 8) {
+    paths.push(`M ${point.x + gap + len} ${point.y - gap} H ${point.x + gap} V ${point.y - gap - len}`);
+    paths.push(`M ${point.x + gap + len} ${point.y + gap} H ${point.x + gap} V ${point.y + gap + len}`);
+  }
+
+  return <path d={paths.join(' ')} />;
 }
 
 function pointLabel(point, piece) {

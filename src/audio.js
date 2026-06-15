@@ -6,6 +6,14 @@ const SOUND_FILES = {
   ui: '/sounds/ui.wav',
 };
 
+const SOUND_VOLUME = {
+  move: 0.32,
+  capture: 0.46,
+  check: 0.5,
+  win: 0.56,
+  ui: 0.28,
+};
+
 const cache = new Map();
 
 export function playSound(name, enabled) {
@@ -16,7 +24,7 @@ export function playSound(name, enabled) {
   cache.set(src, audio);
 
   audio.currentTime = 0;
-  audio.volume = name === 'win' ? 0.55 : 0.42;
+  audio.volume = SOUND_VOLUME[name] ?? SOUND_VOLUME.ui;
   audio.play().catch(() => {
     // 浏览器可能在首次用户手势前禁止播放，忽略即可。
   });

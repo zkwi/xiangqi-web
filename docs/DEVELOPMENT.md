@@ -10,6 +10,7 @@
 - `src/game/ai.worker.js` 在 Worker 中执行 AI 搜索，避免阻塞 UI。
 - `src/App.jsx` 维护当前局面、着法记录、悔棋历史、玩法、难度、主题和本地缓存。
 - UI 组件只接收状态和回调，不直接修改棋局。
+- 棋盘和棋子由 `src/components/Board.jsx` 与 `src/style.css` 绘制，避免依赖额外图片素材。
 
 ## AI 策略
 
@@ -39,6 +40,11 @@ xiangqi-web-state-v1
 保存内容包括当前 FEN、着法记录、悔棋历史、玩法、难度、主题、声音开关和重开目标。AI 对战/残局研究的“运行中”状态不会恢复，避免刷新后自动走棋。
 
 如果将来修改缓存结构，提升 `STORAGE_VERSION` 并保留简单回退即可。
+
+## 素材
+
+- 提示音来自 Kenney UI Audio，CC0 1.0，文件放在 `public/sounds/`。
+- 棋子视觉使用 CSS 分层绘制，字体优先使用本机楷体类中文字体，缺失时回退到 serif。
 
 ## Git 建议
 

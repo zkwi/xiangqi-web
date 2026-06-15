@@ -199,6 +199,11 @@ export default function App() {
     workerRef.current.postMessage({ id, fen, level });
   }, [aiThinking, blackLevel, fen, game.turn, redLevel, status.over]);
 
+  const changeSoundOn = useCallback((value) => {
+    setSoundOn(value);
+    if (value) window.setTimeout(() => playSound('ui', true), 0);
+  }, []);
+
   const sideIsAi = useCallback(
     (side) => {
       if (status.over) return false;
@@ -369,7 +374,7 @@ export default function App() {
           setAutoPlaying={setAutoPlaying}
           aiThinking={aiThinking}
           soundOn={soundOn}
-          setSoundOn={setSoundOn}
+          setSoundOn={changeSoundOn}
           boardTheme={boardTheme}
           setBoardTheme={setBoardTheme}
           canUndo={history.length > 0}

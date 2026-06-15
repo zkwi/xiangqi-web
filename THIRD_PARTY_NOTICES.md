@@ -1,5 +1,24 @@
 # Third-Party Notices
 
+## Kenney UI Audio
+
+Used files:
+
+- `click2.wav` as `public/sounds/move.wav`
+- `click3.wav` as `public/sounds/capture.wav`
+- `switch12.wav` as `public/sounds/check.wav`
+- `switch7.wav` as `public/sounds/win.wav`
+- `click4.wav` as `public/sounds/ui.wav`
+
+Source: https://github.com/Calinou/kenney-ui-audio/tree/master/addons/kenney_ui_audio
+
+License: Creative Commons Zero, CC0 1.0
+
+Author: Kenney Vleugels (Kenney.nl)
+
+The original license states that these assets may be used in personal and
+commercial projects, and that credit is appreciated but not mandatory.
+
 ## kuiba1949/xiangqi-tools
 
 Used file: `fen/shiqingyaqu551.fen`
