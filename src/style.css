@@ -277,6 +277,15 @@ textarea:focus-visible {
     rgba(255, 250, 240, 0.92);
 }
 
+/* warning 底色为浅米色，文字需改用深色以保证对比度 */
+.status-card.warning span {
+  color: #7a4a2c;
+}
+
+.status-card.warning strong {
+  color: #8e2e25;
+}
+
 .status-card.thinking strong::after {
   display: inline-block;
   width: 18px;
