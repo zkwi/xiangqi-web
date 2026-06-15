@@ -1,3 +1,6 @@
+/* ============================================================
+   设计令牌与全局基础
+   ============================================================ */
 :root {
   --bg: #3f3f30;
   --paper: #f4e4c6;
@@ -76,6 +79,9 @@ textarea:focus-visible {
   outline-offset: 2px;
 }
 
+/* ============================================================
+   布局外壳与面板容器
+   ============================================================ */
 .app-shell {
   width: min(1660px, calc(100vw - 34px));
   min-height: 100vh;
@@ -156,6 +162,9 @@ textarea:focus-visible {
   background: rgba(126, 90, 47, 0.34);
 }
 
+/* ============================================================
+   面板头部与对局状态卡片
+   ============================================================ */
 .panel-heading {
   display: flex;
   align-items: center;
@@ -336,6 +345,9 @@ textarea:focus-visible {
   background: linear-gradient(180deg, #e0ae59, #8b5a1d);
 }
 
+/* ============================================================
+   表单控件（玩法/执棋/难度/主题/声音/操作按钮）
+   ============================================================ */
 .field-group,
 .level-grid,
 .fen-loader,
@@ -361,8 +373,7 @@ textarea:focus-visible {
   gap: 8px;
 }
 
-.segmented.two,
-.mode-tabs {
+.segmented.two {
   grid-template-columns: repeat(2, 1fr);
 }
 
@@ -607,6 +618,9 @@ textarea:focus-visible {
   margin-top: 0;
 }
 
+/* ============================================================
+   移动端快捷操作条（仅 ≤720px 显示）
+   ============================================================ */
 .mobile-action-bar {
   display: none;
 }
@@ -676,6 +690,9 @@ textarea:focus-visible {
   background: linear-gradient(135deg, var(--jade), var(--jade-strong));
 }
 
+/* ============================================================
+   弹窗（重开/跳转确认）
+   ============================================================ */
 .modal-backdrop {
   position: fixed;
   z-index: 80;
@@ -734,6 +751,9 @@ textarea:focus-visible {
   background: linear-gradient(135deg, var(--red), var(--red-strong));
 }
 
+/* ============================================================
+   棋盘：外框、对局双方、木质底面
+   ============================================================ */
 .board-shell {
   border-color: rgba(120, 69, 28, 0.55);
   padding: 12px 14px 16px;
@@ -844,6 +864,9 @@ textarea:focus-visible {
     inset 0 0 20px rgba(85, 49, 22, 0.12);
 }
 
+/* ============================================================
+   终局动画覆盖层
+   ============================================================ */
 .endgame-overlay {
   position: absolute;
   z-index: 8;
@@ -1049,6 +1072,9 @@ textarea:focus-visible {
   }
 }
 
+/* ============================================================
+   棋盘主题（玉石 / 水墨）
+   ============================================================ */
 .theme-jade .board-surface {
   border-color: rgba(28, 114, 107, 0.42);
   background:
@@ -1133,6 +1159,9 @@ textarea:focus-visible {
     0 10px 18px rgba(43, 48, 48, 0.18);
 }
 
+/* ============================================================
+   棋盘网格、坐标、河界与棋子
+   ============================================================ */
 .grid-layer,
 .piece-layer {
   position: absolute;
@@ -1187,32 +1216,12 @@ textarea:focus-visible {
   text-transform: uppercase;
 }
 
-.coord-file,
 .coord-rank {
   position: absolute;
   display: grid;
   min-width: 16px;
   height: 16px;
   place-items: center;
-}
-
-.coord-file {
-  display: none;
-}
-
-.coord-file {
-  transform: translateX(-50%);
-}
-
-.coord-file.top {
-  top: -25px;
-}
-
-.coord-file.bottom {
-  bottom: -27px;
-}
-
-.coord-rank {
   transform: translateY(-50%);
 }
 
@@ -1400,11 +1409,14 @@ textarea:focus-visible {
   border-color: rgba(35, 29, 23, 0.38);
 }
 
+/* ============================================================
+   记录与残局面板（着法/引擎信息/残局库/FEN）
+   ============================================================ */
 .move-list {
   display: grid;
   align-content: start;
   gap: 8px;
-  min-height: 170px;
+  min-height: 120px;
   max-height: min(260px, 28vh);
   overflow: auto;
   padding-right: 2px;
@@ -1490,7 +1502,7 @@ textarea:focus-visible {
 
 .empty-state {
   display: grid;
-  min-height: 150px;
+  min-height: 104px;
   place-items: center;
   border: 1px dashed rgba(126, 90, 47, 0.34);
   border-radius: 8px;
@@ -1757,6 +1769,10 @@ textarea:focus-visible {
   line-height: 1.45;
 }
 
+/* ============================================================
+   响应式断点：1180 / 860 / 720 / 420 / 340
+   1180 三栏→两栏，860 →单栏，720 进入移动端布局
+   ============================================================ */
 @media (max-width: 1180px) {
   .workspace {
     grid-template-columns: minmax(240px, 300px) minmax(470px, 1fr);
@@ -1797,18 +1813,6 @@ textarea:focus-visible {
   .board-surface {
     --board-pad: clamp(22px, 6vw, 34px);
     width: min(100%, calc(100vw - 44px));
-  }
-
-  .mode-tabs {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .action-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .search-info {
-    grid-template-columns: repeat(2, 1fr);
   }
 }
 
@@ -1904,14 +1908,6 @@ textarea:focus-visible {
     font-size: 10px;
   }
 
-  .coord-file.top {
-    top: -20px;
-  }
-
-  .coord-file.bottom {
-    bottom: -22px;
-  }
-
   .coord-rank.left {
     left: -21px;
   }
@@ -1922,14 +1918,6 @@ textarea:focus-visible {
 
   .river-label {
     font-size: clamp(18px, 6vw, 24px);
-  }
-
-  .river-left {
-    left: 18%;
-  }
-
-  .river-right {
-    right: 18%;
   }
 
   .mobile-action-bar {
@@ -1944,17 +1932,10 @@ textarea:focus-visible {
       linear-gradient(180deg, rgba(91, 91, 69, 0.94), rgba(55, 56, 42, 0.96));
   }
 
-  .control-panel .action-grid {
+  /* 快捷操作条已承载状态与按钮，隐藏控制面板里重复的状态卡片和操作区 */
+  .control-panel .action-grid,
+  .control-panel .status-card {
     display: none;
-  }
-
-  .status-card {
-    min-height: 54px;
-    padding: 10px;
-  }
-
-  .status-card strong {
-    font-size: 16px;
   }
 
   .mode-tabs button {
@@ -2032,47 +2013,6 @@ textarea:focus-visible {
 
   .preset-list {
     max-height: 300px;
-  }
-
-  .fen-current {
-    margin-top: 0;
-  }
-}
-
-@media (max-width: 520px) {
-  :root {
-    --piece-size: clamp(34px, 10.4vw, 42px);
-    --piece-font-size: clamp(23px, 7.2vw, 32px);
-  }
-
-  .panel-heading h2 {
-    font-size: 20px;
-  }
-
-  .mode-tabs button {
-    min-height: 58px;
-    font-size: 13px;
-  }
-
-  .button-icon {
-    width: 26px;
-    height: 26px;
-  }
-
-  .coord-file.top {
-    top: -22px;
-  }
-
-  .coord-file.bottom {
-    bottom: -24px;
-  }
-
-  .coord-rank.left {
-    left: -22px;
-  }
-
-  .coord-rank.right {
-    right: -22px;
   }
 }
 

@@ -109,24 +109,26 @@ export function AnalysisPanel({
         )}
       </div>
 
-      <div className="search-info">
-        <div>
-          <span>引擎</span>
-          <strong title={searchInfo?.engine ?? ''}>{formatEngine(searchInfo)}</strong>
+      {searchInfo ? (
+        <div className="search-info">
+          <div>
+            <span>引擎</span>
+            <strong title={searchInfo.engine ?? ''}>{formatEngine(searchInfo)}</strong>
+          </div>
+          <div>
+            <span>搜索深度</span>
+            <strong>{searchInfo.depth ?? '-'}</strong>
+          </div>
+          <div>
+            <span>节点</span>
+            <strong>{searchInfo.nodes ? searchInfo.nodes.toLocaleString() : '-'}</strong>
+          </div>
+          <div>
+            <span>耗时</span>
+            <strong>{searchInfo.ms ? `${searchInfo.ms}ms` : '-'}</strong>
+          </div>
         </div>
-        <div>
-          <span>搜索深度</span>
-          <strong>{searchInfo?.depth ?? '-'}</strong>
-        </div>
-        <div>
-          <span>节点</span>
-          <strong>{searchInfo?.nodes ? searchInfo.nodes.toLocaleString() : '-'}</strong>
-        </div>
-        <div>
-          <span>耗时</span>
-          <strong>{searchInfo?.ms ? `${searchInfo.ms}ms` : '-'}</strong>
-        </div>
-      </div>
+      ) : null}
 
       {searchInfo || repetitionNotice ? (
         <div className="engine-detail">

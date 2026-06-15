@@ -97,16 +97,6 @@ function EndgameOverlay({ result }) {
 function BoardCoordinates() {
   return (
     <div className="coordinate-layer" aria-hidden="true">
-      {files.map((x) => (
-        <span className="coord-file top" key={`top-${x}`} style={{ left: `${(x / 8) * 100}%` }}>
-          {'abcdefghi'[x]}
-        </span>
-      ))}
-      {files.map((x) => (
-        <span className="coord-file bottom" key={`bottom-${x}`} style={{ left: `${(x / 8) * 100}%` }}>
-          {'abcdefghi'[x]}
-        </span>
-      ))}
       {ranks.map((y) => (
         <span className="coord-rank left" key={`left-${y}`} style={{ top: `${(y / 9) * 100}%` }}>
           {9 - y}
