@@ -17,9 +17,19 @@
 - **移动端适配**：手机端优先展示棋盘，并提供快捷操作条。
 - **本地状态恢复**：刷新页面后恢复上次局面、记录、设置和重开目标。
 
-## 在线/本地运行
+## 在线体验
 
-当前项目默认用于本地运行。
+在线 Demo：
+
+https://xiangqi-web.zkwi2010.workers.dev/
+
+推荐使用 Chrome 或 Edge 访问。Demo 支持棋盘操作、残局库、AI 对战、着法记录、音效和移动端布局。
+
+大师/宗师强度会尝试加载 Fairy-Stockfish WASM 强引擎。若当前浏览器或部署环境不满足 WASM 运行条件，程序会回退到本地搜索；需要稳定的强引擎体验时，建议按下方步骤本地运行，或在 Cloudflare 部署中配置跨源隔离响应头。
+
+## 本地运行
+
+本地运行适合开发、调试和验证强引擎行为。
 
 ```bash
 npm install
@@ -38,6 +48,44 @@ http://127.0.0.1:5173/
 npm run build
 npm run preview
 ```
+
+## 部署说明
+
+当前在线 Demo 部署在 Cloudflare Workers：
+
+```text
+https://xiangqi-web.zkwi2010.workers.dev/
+```
+
+静态部署的基本流程：
+
+```bash
+npm ci
+npm run check
+npm run build
+```
+
+构建产物目录为：
+
+```text
+dist
+```
+
+为了让 Fairy-Stockfish WASM 强引擎更稳定，线上环境建议为所有静态资源配置以下响应头：
+
+```text
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Embedder-Policy: require-corp
+Cross-Origin-Resource-Policy: same-origin
+```
+
+配置完成后，可以在浏览器控制台检查：
+
+```js
+window.crossOriginIsolated
+```
+
+若返回 `true`，说明页面已进入跨源隔离环境，更适合运行 WASM 强引擎。
 
 ## 常用命令
 
