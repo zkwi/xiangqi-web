@@ -652,9 +652,12 @@ textarea:focus-visible {
 }
 
 .mobile-action-status span:not(.turn-pill) {
+  overflow: hidden;
   color: rgba(244, 226, 192, 0.72);
   font-size: 11px;
   font-weight: 760;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .mobile-action-status strong {
@@ -697,6 +700,11 @@ textarea:focus-visible {
   border-color: rgba(28, 114, 107, 0.38);
   color: #fff;
   background: linear-gradient(135deg, var(--jade), var(--jade-strong));
+}
+
+/* 触摸端按下反馈：略微缩放，替代缺失的 hover 态 */
+.mobile-action-buttons button:not(:disabled):active {
+  transform: scale(0.97);
 }
 
 /* ============================================================
@@ -1267,7 +1275,7 @@ textarea:focus-visible {
   position: absolute;
   z-index: 2;
   display: grid;
-  width: min(var(--piece-size), 12.8%);
+  width: min(var(--piece-size), 11.4%);
   height: auto;
   aspect-ratio: 1;
   place-items: center;
@@ -1281,6 +1289,17 @@ textarea:focus-visible {
 
 .board-point:not(:disabled):hover .piece-face {
   transform: translateY(-3px) scale(1.035);
+}
+
+/* 轮到电脑时整盘棋点被 disabled，但不应继承按钮的半透明，否则整盘发灰发虚 */
+.board-point:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+/* 触摸端没有 hover，按下时给棋子一个轻微下沉反馈 */
+.board-point:not(:disabled):active .piece-face {
+  transform: scale(0.96);
 }
 
 .board-point.legal::after {
@@ -1828,7 +1847,8 @@ textarea:focus-visible {
 @media (max-width: 720px) {
   :root {
     --piece-size: clamp(34px, 10.2vw, 42px);
-    --piece-font-size: clamp(23px, 7vw, 31px);
+    /* 字号约为棋子直径的 0.55，确保汉字落在棋子内圈装饰环内，不外溢 */
+    --piece-font-size: clamp(19px, 5.4vw, 25px);
   }
 
   body {
@@ -1913,6 +1933,12 @@ textarea:focus-visible {
     transform: none;
   }
 
+  /* 移动端小尺寸下，叠加的双层文字阴影会让笔画发虚，收成单层轻阴影 */
+  .piece-glyph {
+    transform: none;
+    text-shadow: 0 1px 1px rgba(71, 37, 13, 0.22);
+  }
+
   .coordinate-layer {
     font-size: 10px;
   }
@@ -1932,7 +1958,7 @@ textarea:focus-visible {
   .mobile-action-bar {
     order: -1;
     display: grid;
-    grid-template-columns: minmax(96px, 0.58fr) minmax(0, 1.42fr);
+    grid-template-columns: minmax(108px, 0.64fr) minmax(0, 1.36fr);
     gap: 8px;
     align-items: center;
     border: 1px solid rgba(255, 221, 150, 0.18);
@@ -2028,7 +2054,7 @@ textarea:focus-visible {
 @media (max-width: 420px) {
   :root {
     --piece-size: clamp(34px, 10.2vw, 41px);
-    --piece-font-size: clamp(23px, 7vw, 30px);
+    --piece-font-size: clamp(18px, 5.3vw, 24px);
   }
 
   .app-shell {
