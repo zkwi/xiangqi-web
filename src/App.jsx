@@ -595,6 +595,7 @@ export default function App() {
           result={endgameResult}
           theme={boardTheme}
           disabled={boardInteractionDisabled}
+          checkedSide={status.check ? game.turn : null}
           onPoint={handlePoint}
         />
 

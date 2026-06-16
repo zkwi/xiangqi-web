@@ -1,11 +1,12 @@
-import { PIECE_TEXT, posKey, samePos } from '../game/xiangqi.js';
+import { PIECE_TEXT, findKing, posKey, samePos } from '../game/xiangqi.js';
 
 const files = Array.from({ length: 9 }, (_, x) => x);
 const ranks = Array.from({ length: 10 }, (_, y) => y);
 const points = ranks.flatMap((y) => files.map((x) => ({ x, y })));
 
-export function Board({ state, legalMoves, selected, lastMove, result, theme, disabled, onPoint }) {
+export function Board({ state, legalMoves, selected, lastMove, result, theme, disabled, checkedSide, onPoint }) {
   const legalTargets = new Set(legalMoves.map((move) => posKey(move.to)));
+  const checkedKing = checkedSide ? findKing(state, checkedSide) : null;
 
   return (
     <section className={`board-shell theme-${theme}`} aria-label="中国象棋棋盘">
@@ -36,6 +37,7 @@ export function Board({ state, legalMoves, selected, lastMove, result, theme, di
             const isCaptureTarget = isLegal && piece && piece.side !== state.turn;
             const isLastFrom = lastMove && samePos(lastMove.from, point);
             const isLastTo = lastMove && samePos(lastMove.to, point);
+            const isCheckedKing = checkedKing && samePos(checkedKing, point);
 
             return (
               <button
@@ -48,6 +50,7 @@ export function Board({ state, legalMoves, selected, lastMove, result, theme, di
                   isCaptureTarget ? 'capture-target' : '',
                   isLastFrom ? 'last-from' : '',
                   isLastTo ? 'last-to' : '',
+                  isCheckedKing ? 'in-check' : '',
                 ]
                   .filter(Boolean)
                   .join(' ')}

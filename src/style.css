@@ -1355,6 +1355,37 @@ textarea:focus-visible {
     0 10px 22px rgba(28, 114, 107, 0.18);
 }
 
+/* 被将军的帅/将：红色告警光环，提示当前必须应将 */
+.board-point.in-check::after {
+  position: absolute;
+  inset: -5px;
+  border: 2.5px solid rgba(199, 42, 35, 0.92);
+  border-radius: 50%;
+  background: transparent;
+  box-shadow:
+    0 0 0 4px rgba(199, 42, 35, 0.15),
+    0 0 14px rgba(199, 42, 35, 0.42);
+  content: "";
+  animation: checkPulse 1.1s ease-in-out infinite;
+}
+
+@keyframes checkPulse {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .board-point.in-check::after {
+    animation: none;
+    opacity: 1;
+  }
+}
+
 .piece-face {
   position: relative;
   z-index: 3;
