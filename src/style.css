@@ -1939,11 +1939,12 @@ textarea:focus-visible {
   }
 
   .board-surface {
-    --board-pad: clamp(18px, 5.2vw, 26px);
+    /* 加大边距，让最外圈棋子与木质边框留出间隙，坐标数字也有容身空间 */
+    --board-pad: clamp(22px, 6vw, 30px);
     width: min(100%, calc(100vw - 22px));
     box-shadow:
-      inset 0 0 0 5px rgba(111, 70, 34, 0.44),
-      inset 0 0 0 9px rgba(255, 223, 161, 0.26),
+      inset 0 0 0 4px rgba(111, 70, 34, 0.42),
+      inset 0 0 0 7px rgba(255, 223, 161, 0.24),
       inset 0 0 22px rgba(95, 48, 15, 0.14),
       0 4px 0 rgba(103, 57, 24, 0.72),
       0 12px 22px rgba(35, 20, 10, 0.32);
@@ -1980,16 +1981,9 @@ textarea:focus-visible {
     text-shadow: 0 1px 1px rgba(71, 37, 13, 0.22);
   }
 
+  /* 手机上棋盘边距有限，边线棋子会盖住坐标数字形成残缺感，索性隐藏，换来更干净的版面 */
   .coordinate-layer {
-    font-size: 10px;
-  }
-
-  .coord-rank.left {
-    left: -21px;
-  }
-
-  .coord-rank.right {
-    right: -21px;
+    display: none;
   }
 
   .river-label {
@@ -2108,7 +2102,7 @@ textarea:focus-visible {
   }
 
   .board-surface {
-    --board-pad: clamp(17px, 5.1vw, 22px);
+    --board-pad: clamp(20px, 6vw, 26px);
     width: min(100%, calc(100vw - 18px));
   }
 
