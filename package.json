@@ -15,11 +15,14 @@
     "test:red-win": "node scripts/red-win-sample.mjs",
     "test:red-win:grandmaster": "node scripts/red-win-sample.mjs --samples=10 --plies=2 --level=grandmaster",
     "test:audio": "node scripts/audio-smoke.mjs",
-    "preview": "vite preview"
+    "preview": "npm run build && wrangler dev",
+    "deploy": "npm run build && wrangler deploy"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.40.2",
     "@vitejs/plugin-react": "^6.0.2",
-    "vite": "^8.0.12"
+    "vite": "^8.0.12",
+    "wrangler": "^4.100.0"
   },
   "dependencies": {
     "fairy-stockfish-nnue.wasm": "^1.1.11",
