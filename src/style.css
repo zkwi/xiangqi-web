@@ -1918,15 +1918,25 @@ textarea:focus-visible {
       0 12px 22px rgba(35, 20, 10, 0.32);
   }
 
+  /* 移动端棋子小，去掉多余的内圈描边与立体堆叠，仅保留柔和凸起 + 投影 */
   .piece-face {
     border-width: 1.5px;
     font-size: var(--piece-font-size);
     box-shadow:
-      inset 0 -5px 7px rgba(98, 52, 16, 0.32),
-      inset 0 2px 6px rgba(255, 242, 198, 0.56),
-      inset 0 0 0 3px rgba(137, 78, 30, 0.16),
-      0 2px 0 rgba(94, 51, 20, 0.44),
-      0 5px 8px rgba(42, 28, 16, 0.3);
+      inset 0 -3px 5px rgba(98, 52, 16, 0.24),
+      inset 0 2px 4px rgba(255, 242, 198, 0.5),
+      0 3px 6px rgba(42, 28, 16, 0.26);
+  }
+
+  /* 单层细刻线即可，去掉双层阴影；移除高光斑点，避免小尺寸下显得花哨 */
+  .piece-face::before {
+    inset: 13%;
+    border-width: 1px;
+    box-shadow: none;
+  }
+
+  .piece-face::after {
+    display: none;
   }
 
   .board-point:not(:disabled):hover .piece-face {
